@@ -1,0 +1,4 @@
+fastapi
+pysentimiento
+uvicorn[standard]
+pydantic
