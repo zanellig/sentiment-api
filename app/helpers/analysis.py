@@ -1,11 +1,17 @@
-from app.config.settings import analyzer
+from app.config import settings
 
 def _run_analysis(text: str) -> dict:
     """CPU-bound inference in thread pool"""
     # Get predictions
-    sent_pred = analyzer["sentiment"].predict(text)
-    emot_pred = analyzer["emotion"].predict(text)
-    hate_pred = analyzer["hate_speech"].predict(text)
+    print(f"Analyzing sentiment for text: {text}")
+    sent_pred = settings.analyzer["sentiment"].predict(text)
+    print("Sentiment result:", sent_pred)
+    print(f"Analyzing emotion for text: {text}")
+    emot_pred = settings.analyzer["emotion"].predict(text)
+    print("Emotion result:", emot_pred)
+    print(f"Analyzing hate speech for text: {text}")
+    hate_pred = settings.analyzer["hate_speech"].predict(text)
+    print("Hate speech result:", hate_pred)
     # Convert to dict with proper structure
     return {
         "sentiment": {

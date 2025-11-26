@@ -11,9 +11,9 @@ from app.routes.api import router
 async def lifespan(app: FastAPI):
     print("Loading models...")
     settings.analyzer = {
-        "sentiment": create_analyzer(task="sentiment", lang="es"),
-        "emotion": create_analyzer(task="emotion", lang="es"),
-        "hate_speech": create_analyzer(task="hate_speech", lang="es")
+        "sentiment": create_analyzer(task="sentiment", lang=settings.LANG),
+        "emotion": create_analyzer(task="emotion", lang=settings.LANG),
+        "hate_speech": create_analyzer(task="hate_speech", lang=settings.LANG)
     }
     print("Models loaded successfully!")
     yield
