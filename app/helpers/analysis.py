@@ -48,8 +48,8 @@ def _run_analysis(text: str, config: ConfigInput) -> dict:
         ner_pred = settings.analyzer["ner"].predict(text)
         print("Ner result", ner_pred)
         response["ner"] = {
-            "label": ner_pred.output,
-            "probas": getattr(ner_pred, "probas", None)
+            "tokens": ner_pred.tokens,
+            "labels": ner_pred.labels
         }
 
     if config.pos:
@@ -57,8 +57,8 @@ def _run_analysis(text: str, config: ConfigInput) -> dict:
         pos_pred = settings.analyzer["pos"].predict(text)
         print("Pos result", pos_pred)
         response["pos"] = {
-            "label": pos_pred.output,
-            "probas": getattr(pos_pred, "probas", None)
+            "tokens": pos_pred.tokens,
+            "labels": pos_pred.labels
         }
 
     if config.targeted_sentiment:

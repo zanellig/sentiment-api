@@ -14,11 +14,15 @@ class TextInput(BaseModel):
     text: str
     config: ConfigInput = ConfigInput()
 
+class TokenOutput(BaseModel):
+    tokens: list[str]
+    labels: list[str]
+
 class AnalysisResponse(BaseModel):
     sentiment: dict | None = None
     emotion: dict | None = None
     hate_speech: dict | None = None
     irony: dict | None = None
-    ner: dict | None = None
-    pos: dict | None = None
+    ner: TokenOutput | None = None
+    pos: TokenOutput | None = None
     targeted_sentiment: dict | None = None
