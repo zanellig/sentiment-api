@@ -11,7 +11,7 @@ async def analyze_text(input_data: TextInput):
     """Async endpoint that offloads inference to thread pool"""
     try:
         loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(executor, _run_analysis, input_data.text)
+        result = await loop.run_in_executor(executor, _run_analysis, input_data.text, input_data.config)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e

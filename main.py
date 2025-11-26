@@ -13,7 +13,11 @@ async def lifespan(app: FastAPI):
     settings.analyzer = {
         "sentiment": create_analyzer(task="sentiment", lang=settings.LANG),
         "emotion": create_analyzer(task="emotion", lang=settings.LANG),
-        "hate_speech": create_analyzer(task="hate_speech", lang=settings.LANG)
+        "hate_speech": create_analyzer(task="hate_speech", lang=settings.LANG),
+        "irony": create_analyzer(task="irony", lang=settings.LANG),
+        "ner": create_analyzer(task="ner", lang=settings.LANG),
+        "pos": create_analyzer(task="pos", lang=settings.LANG),
+        "targeted_sentiment": create_analyzer(task="targeted_sentiment", lang=settings.LANG),
     }
     print("Models loaded successfully!")
     yield
