@@ -1,20 +1,24 @@
 from pydantic import BaseModel
 
 class ConfigInput(BaseModel):
-    lang: str
-    sentiment: bool
-    emotion: bool
-    hate_speech: bool
-    irony: bool
-    ner: bool
-    pos: bool
-    targeted_sentiment: bool
+    lang: str = "es"
+    sentiment: bool = False
+    emotion: bool = False
+    hate_speech: bool = False
+    irony: bool = False
+    ner: bool = False
+    pos: bool = False
+    targeted_sentiment: bool = False
 
 class TextInput(BaseModel):
     text: str
-    config: ConfigInput
+    config: ConfigInput = ConfigInput()
 
 class AnalysisResponse(BaseModel):
-    sentiment: dict
-    emotion: dict
-    hate_speech: dict
+    sentiment: dict | None = None
+    emotion: dict | None = None
+    hate_speech: dict | None = None
+    irony: dict | None = None
+    ner: dict | None = None
+    pos: dict | None = None
+    targeted_sentiment: dict | None = None
