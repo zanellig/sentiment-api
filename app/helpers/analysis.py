@@ -62,11 +62,16 @@ def _run_analysis(text: str, config: ConfigInput) -> dict:
         }
 
     if config.targeted_sentiment:
-        print(f"Analyzing Targeted Sentiment for text: {text}")
-        targsent_pred = settings.analyzer["targeted_sentiment"].predict(text)
-        print("Targeted Sentiment result", targsent_pred)
-        response["targeted_sentiment"] = {
-            "label": targsent_pred.output,
-            "probas": getattr(targsent_pred, "probas", None)
-        }
+        if config.lang != "es":
+            response.setdefault("warnings", []).append("Targeted sentiment analysis is only available in Spanish (es). Skipping.")
+        elif "targeted_sentiment" not in settings.analyzer:
+            response.setdefault("warnings", []).append("Targeted sentiment model is not loaded. Skipping.")
+        else:
+            print(f"Analyzing Targeted Sentiment for text: {text}")
+            targsent_pred = settings.analyzer["targeted_sentiment"].predict(text)
+            print("Targeted Sentiment result", targsent_pred)
+            response["targeted_sentiment"] = {
+                "label": targsent_pred.output,
+                "probas": getattr(targsent_pred, "probas", None)
+            }
     return response

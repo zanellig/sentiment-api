@@ -26,3 +26,4 @@ class AnalysisResponse(BaseModel):
     ner: TokenOutput | None = None
     pos: TokenOutput | None = None
     targeted_sentiment: dict | None = None
+    warnings: list[str] = []
