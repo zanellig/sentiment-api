@@ -44,18 +44,18 @@ def _run_analysis(text: str, config: ConfigInput) -> dict:
         }
 
     if config.ner:
-        print(f"Analyzing ner for text: {text}")
+        print(f"Analyzing Named Entity Recognition for text: {text}")
         ner_pred = settings.analyzer["ner"].predict(text)
-        print("Ner result", ner_pred)
+        print("NER result", ner_pred)
         response["ner"] = {
             "tokens": ner_pred.tokens,
             "labels": ner_pred.labels
         }
 
     if config.pos:
-        print(f"Analyzing pos for text: {text}")
+        print(f"Analyzing Part-of-Speech Tagging for text: {text}")
         pos_pred = settings.analyzer["pos"].predict(text)
-        print("Pos result", pos_pred)
+        print("POS result", pos_pred)
         response["pos"] = {
             "tokens": pos_pred.tokens,
             "labels": pos_pred.labels
