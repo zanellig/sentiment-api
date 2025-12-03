@@ -1,6 +1,14 @@
 {
     "python-envs.defaultEnvManager": "ms-python.python:venv",
     "python-envs.pythonProjects": [],
+    // organize imports on save
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "always"
+    },
+    "python.analysis.autoSearchPaths": true,
     "python.analysis.indexing": true,
-    "python.useEnvironmentsExtension": true
+    "python.useEnvironmentsExtension": true,
+    "python.analysis.typeCheckingMode": "strict",
+    "workbench.sideBar.location": "right",
+    "workbench.statusBar.visible": false    
 }
