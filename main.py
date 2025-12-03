@@ -1,8 +1,8 @@
 import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from pysentimiento import create_analyzer
-from app.config import settings
+from app.core.config import settings, executor
+from app.services.analyzer import analyzer_service
 from app.routes.api import router
 
 # uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1 --limit-concurrency 100
@@ -10,22 +10,11 @@ from app.routes.api import router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Loading models...")
-    settings.analyzer = {
-        "sentiment": create_analyzer(task="sentiment", lang=settings.LANG),
-        "emotion": create_analyzer(task="emotion", lang=settings.LANG),
-        "hate_speech": create_analyzer(task="hate_speech", lang=settings.LANG),
-        "irony": create_analyzer(task="irony", lang=settings.LANG),
-        "ner": create_analyzer(task="ner", lang=settings.LANG),
-        "pos": create_analyzer(task="pos", lang=settings.LANG),
-    }
-
-    if settings.LANG == "es":
-        settings.analyzer["targeted_sentiment"] = create_analyzer(task="targeted_sentiment", lang=settings.LANG)
-
+    analyzer_service.load_models()
     print("Models loaded successfully!")
     yield
     print("Shutting down...")
-    settings.executor.shutdown(wait=True)
+    executor.shutdown(wait=True)
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(router)

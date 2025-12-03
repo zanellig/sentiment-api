@@ -1,8 +1,9 @@
 import asyncio
 from fastapi import APIRouter, HTTPException
 from app.models.schemas import TextInput, AnalysisResponse
-from app.config.settings import executor
+from app.core.config import executor
 from app.helpers.analysis import _run_analysis
+from app.services.analyzer import analyzer_service
 
 router = APIRouter()
 
@@ -18,5 +19,4 @@ async def analyze_text(input_data: TextInput):
 
 @router.get("/health")
 async def health_check():
-    from app.config.settings import analyzer
-    return {"status": "healthy", "models_loaded": analyzer is not None}
+    return {"status": "healthy", "models_loaded": len(analyzer_service.models) > 0}
