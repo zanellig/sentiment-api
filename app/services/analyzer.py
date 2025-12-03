@@ -23,17 +23,17 @@ class AnalyzerService:
 
     def _load_model(self, task: str):
         if task not in self.models:
-            logger.info(f"Loading model: {task}")
+            logger.info("Loading model: %s", task)
             try:
                 self.models[task] = create_analyzer(task=task, lang=settings.LANG)
             except Exception as e:
-                logger.error(f"Failed to load model {task}: {e}")
+                logger.error("Failed to load model %s: %s", task, e)
                 raise e
 
     def get_model(self, task: str):
         """Get a model, loading it if necessary."""
         if task not in self.models:
-            logger.info(f"Model {task} not loaded. Loading on-call...")
+            logger.info("Model %s not loaded. Loading on-call...", task)
             self._load_model(task)
         return self.models[task]
 

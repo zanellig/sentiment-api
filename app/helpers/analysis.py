@@ -11,54 +11,54 @@ def _run_analysis(text: str, config: ConfigInput) -> dict:
 
     # Get predictions
     if config.sentiment:
-        logger.info(f"Analyzing sentiment for text: {text}")
+        logger.info("Analyzing sentiment for text: %s", text)
         sent_pred = analyzer_service.get_model("sentiment").predict(text)
-        logger.info(f"Sentiment result: {sent_pred}")
+        logger.info("Sentiment result: %s", sent_pred)
         response["sentiment"] = {
             "label": sent_pred.output,
             "probas": sent_pred.probas
         }
 
     if config.emotion:
-        logger.info(f"Analyzing emotion for text: {text}")
+        logger.info("Analyzing emotion for text: %s", text)
         emot_pred = analyzer_service.get_model("emotion").predict(text)
-        logger.info(f"Emotion result: {emot_pred}")
+        logger.info("Emotion result: %s", emot_pred)
         response["emotion"] = {
             "label": emot_pred.output,
             "probas": emot_pred.probas
         }
 
     if config.hate_speech:
-        logger.info(f"Analyzing hate speech for text: {text}")
+        logger.info("Analyzing hate speech for text: %s", text)
         hate_pred = analyzer_service.get_model("hate_speech").predict(text)
-        logger.info(f"Hate speech result: {hate_pred}")
+        logger.info("Hate speech result: %s", hate_pred)
         response["hate_speech"] = {
             "label": hate_pred.output,
             "probas": hate_pred.probas
         }
 
     if config.irony:
-        logger.info(f"Analyzing irony for text: {text}")
+        logger.info("Analyzing irony for text: %s", text)
         irony_pred = analyzer_service.get_model("irony").predict(text)
-        logger.info(f"Irony result: {irony_pred}")
+        logger.info("Irony result: %s", irony_pred)
         response["irony"] = {
             "label": irony_pred.output,
             "probas": irony_pred.probas
         }
 
     if config.ner:
-        logger.info(f"Analyzing Named Entity Recognition for text: {text}")
+        logger.info("Analyzing Named Entity Recognition for text: %s", text)
         ner_pred = analyzer_service.get_model("ner").predict(text)
-        logger.info(f"NER result: {ner_pred}")
+        logger.info("NER result: %s", ner_pred)
         response["ner"] = {
             "tokens": ner_pred.tokens,
             "labels": ner_pred.labels
         }
 
     if config.pos:
-        logger.info(f"Analyzing Part-of-Speech Tagging for text: {text}")
+        logger.info("Analyzing Part-of-Speech Tagging for text: %s", text)
         pos_pred = analyzer_service.get_model("pos").predict(text)
-        logger.info(f"POS result: {pos_pred}")
+        logger.info("POS result: %s", pos_pred)
         response["pos"] = {
             "tokens": pos_pred.tokens,
             "labels": pos_pred.labels
@@ -75,9 +75,9 @@ def _run_analysis(text: str, config: ConfigInput) -> dict:
                 # The original code checked 'if "targeted_sentiment" not in settings.analyzer'
                 # But now get_model loads on demand.
                 # So we just call get_model.
-                logger.info(f"Analyzing Targeted Sentiment for text: {text}")
+                logger.info("Analyzing Targeted Sentiment for text: %s", text)
                 targsent_pred = analyzer_service.get_model("targeted_sentiment").predict(text)
-                logger.info(f"Targeted Sentiment result: {targsent_pred}")
+                logger.info("Targeted Sentiment result: %s", targsent_pred)
                 response["targeted_sentiment"] = {
                     "label": targsent_pred.output,
                     "probas": getattr(targsent_pred, "probas", None)
