@@ -11,6 +11,7 @@ A comprehensive NLP API built with **FastAPI** and **pysentimiento**, capable of
 - **NER (Named Entity Recognition)**: Extracts entities like Persons, Organizations, and Locations.
 - **POS (Part-of-Speech) Tagging**: Grammatical tagging of tokens.
 - **Targeted Sentiment**: Analyzes sentiment towards specific targets.
+- **Efficient Resource Management**: Implements singleton pattern for model handling, on-demand loading for non-default models, and automatic unloading on shutdown.
 
 ## Installation
 
@@ -29,7 +30,13 @@ A comprehensive NLP API built with **FastAPI** and **pysentimiento**, capable of
 
 ### Running the Server
 
-Start the application using the app's main entry point:
+You can start the application directly with Python, which will automatically configure the number of workers based on your CPU cores:
+
+```bash
+python main.py
+```
+
+Alternatively, you can use `uvicorn` directly if you need specific control:
 
 ```bash
 python main.py
@@ -82,7 +89,7 @@ Checks if the API is running and models are loaded.
 
 ## Considerations
 
-- **Memory Usage**: This API loads multiple Transformer models into memory. Ensure your environment has sufficient RAM (approx. 4GB+ recommended depending on loaded models).
+- **Memory Usage**: This API loads multiple Transformer models into memory. Default models are loaded at startup, while others are loaded on-demand. All models are unloaded on shutdown to free up resources. Ensure your environment has sufficient RAM (approx. 4GB+ recommended depending on loaded models).
 - **CPU vs GPU**: Currently configured for CPU inference using a `ThreadPoolExecutor` to handle concurrent requests without blocking the event loop.
 
 ## Roadmap

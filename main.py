@@ -26,5 +26,5 @@ app.include_router(router)
 
 if __name__ == "__main__":
     workers = os.cpu_count() or 1
-    logger.info(f"Starting uvicorn with {workers} workers")
+    logger.info("Starting uvicorn with %s workers", workers)
     uvicorn.run("main:app", host="0.0.0.0", port=8000, workers=workers)
