@@ -18,6 +18,7 @@ async def lifespan(app: FastAPI):
     logger.info("Models loaded successfully!")
     yield
     logger.info("Shutting down...")
+    analyzer_service.unload_models()
     executor.shutdown(wait=True)
 
 app = FastAPI(lifespan=lifespan)

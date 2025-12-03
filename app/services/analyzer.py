@@ -37,4 +37,12 @@ class AnalyzerService:
             self._load_model(task)
         return self.models[task]
 
+    def unload_models(self):
+        """Unload all models and clear memory."""
+        logger.info("Unloading models...")
+        self.models.clear()
+        import gc
+        gc.collect()
+        logger.info("Models unloaded successfully.")
+
 analyzer_service = AnalyzerService()
