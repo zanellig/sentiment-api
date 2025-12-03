@@ -29,10 +29,10 @@ A comprehensive NLP API built with **FastAPI** and **pysentimiento**, capable of
 
 ### Running the Server
 
-Start the application using `uvicorn`:
+Start the application using the app's main entry point:
 
 ```bash
-uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
+python main.py
 ```
 
 > **Note:** The first time you run the application, it will download the necessary models from Hugging Face. This may take a few minutes and requires several GB of disk space.
