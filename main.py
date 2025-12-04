@@ -21,7 +21,48 @@ async def lifespan(app: FastAPI):
     analyzer_service.unload_models()
     executor.shutdown(wait=True)
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    title="Sentiment Analysis API",
+    description="""
+## Advanced NLP Sentiment Analysis API
+
+This API provides comprehensive text analysis capabilities including:
+
+* **Sentiment Analysis** - Detect positive, negative, or neutral sentiment
+* **Emotion Detection** - Identify emotions like joy, sadness, anger, fear, etc.
+* **Hate Speech Detection** - Flag potentially harmful or offensive content
+* **Irony Detection** - Detect sarcastic or ironic statements
+* **Named Entity Recognition (NER)** - Extract entities like persons, organizations, locations
+* **Part-of-Speech (POS) Tagging** - Identify grammatical components
+* **Targeted Sentiment Analysis** - Analyze sentiment towards specific entities
+
+### Features
+
+- 🚀 Fast and scalable inference using thread pool executors
+- 🧠 Multiple pre-trained NLP models
+- 🌍 Multi-language support (Spanish by default, configurable)
+- ⚡ Async API with automatic model loading/unloading
+- 📊 Comprehensive analysis results
+
+### Usage
+
+Send a POST request to `/analyze` with your text and configuration options.
+Check `/health` endpoint to verify service status.
+    """,
+    version="1.0.0",
+    contact={
+        "name": "API Support",
+        "email": "gonzalozanelli1+support@gmail.com",
+    },
+    license_info={
+        "name": "GPLv3 License",
+        "url": "https://opensource.org/licenses/GPL-3.0",
+    },
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+    lifespan=lifespan,
+)
 app.include_router(router)
 
 if __name__ == "__main__":

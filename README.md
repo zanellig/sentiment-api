@@ -44,6 +44,31 @@ python main.py
 
 > **Note:** The first time you run the application, it will download the necessary models from Hugging Face. This may take a few minutes and requires several GB of disk space.
 
+### API Documentation
+
+The API includes **automatic OpenAPI documentation** with interactive interfaces:
+
+- **Swagger UI** (Interactive): [http://localhost:8000/docs](http://localhost:8000/docs)
+  - Try out API endpoints directly from your browser
+  - View request/response schemas
+  - See example payloads and responses
+  
+- **ReDoc** (Alternative UI): [http://localhost:8000/redoc](http://localhost:8000/redoc)
+  - Clean, three-panel documentation
+  - Better for reading and sharing documentation
+  - Searchable and well-organized
+
+- **OpenAPI JSON Schema**: [http://localhost:8000/openapi.json](http://localhost:8000/openapi.json)
+  - Raw OpenAPI 3.0 specification
+  - Use for code generation or tool integration
+
+The documentation is automatically generated from the code and includes:
+- Detailed endpoint descriptions
+- Request/response examples
+- Parameter descriptions and validation rules
+- Model schemas with field documentation
+
+
 ### API Endpoints
 
 #### `POST /analyze`
