@@ -7,6 +7,7 @@ from app.services.analyzer import analyzer_service
 
 router = APIRouter()
 
+
 @router.post(
     "/analyze",
     response_model=AnalysisResponse,
@@ -45,42 +46,61 @@ router = APIRouter()
             "content": {
                 "application/json": {
                     "example": {
-                        "sentiment": {"label": "positive", "score": 0.98},
-                        "emotion": {"label": "joy", "score": 0.95},
+                        "sentiment": {
+                            "label": "POS",
+                            "probas": {
+                                "NEG": 0.003175899153575301,
+                                "NEU": 0.018749907612800598,
+                                "POS": 0.9780741930007935,
+                            },
+                        },
+                        "emotion": {
+                            "label": "joy",
+                            "probas": {
+                                "others": 0.005782733671367168,
+                                "joy": 0.9731774926185608,
+                                "sadness": 0.000595200399402529,
+                                "anger": 0.0017351302085444331,
+                                "surprise": 0.013928169384598732,
+                                "disgust": 0.0026700037997215986,
+                                "fear": 0.0021112514659762383,
+                            },
+                        },
                         "hate_speech": None,
                         "irony": None,
                         "ner": None,
                         "pos": None,
                         "targeted_sentiment": None,
-                        "warnings": []
+                        "warnings": [],
                     }
                 }
-            }
+            },
         },
         500: {
             "description": "Internal server error during analysis",
             "content": {
-                "application/json": {
-                    "example": {"detail": "Model inference failed"}
-                }
-            }
-        }
-    }
+                "application/json": {"example": {"detail": "Model inference failed"}}
+            },
+        },
+    },
 )
 async def analyze_text(input_data: TextInput):
     """
     Analyze text using configured NLP models.
-    
+
     This endpoint processes text through the requested analysis models and returns
     comprehensive results. The inference is offloaded to a thread pool to keep the
     async event loop responsive.
     """
     try:
         loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(executor, _run_analysis, input_data.text, input_data.config)
+        result = await loop.run_in_executor(
+            executor, _run_analysis, input_data.text, input_data.config
+        )
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
+
 
 @router.get(
     "/health",
@@ -100,24 +120,21 @@ async def analyze_text(input_data: TextInput):
             "description": "Service is healthy",
             "content": {
                 "application/json": {
-                    "example": {
-                        "status": "healthy",
-                        "models_loaded": 3
-                    }
+                    "example": {"status": "healthy", "models_loaded": 3}
                 }
-            }
+            },
         }
-    }
+    },
 )
 async def health_check():
     """
     Check API health and model status.
-    
+
     Returns the current health status and the count of loaded models.
     """
     loaded_models = list(analyzer_service.models.keys())
     return {
-        "status": "healthy", 
+        "status": "healthy",
         "models_loaded": len(loaded_models),
-        "models": loaded_models
+        "models": loaded_models,
     }
