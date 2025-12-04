@@ -211,7 +211,7 @@ Checks if the API is running and models are loaded.
 
 - [x] On demand text analysis
 - [ ] GPU based computing when available
-- [ ] Model loading based on configuration settings using environment variables
+- [x] Model loading based on configuration settings using environment variables
 - [ ] Connection to DB using task-management and uuid-based system from transcriptions using WhisperX (separate service that connects to the same DB using SQL alchemy)
 - [x] Thread detection and dynamic thread usage
 - [ ] Implement model service architecture (currently the models get loaded once per thread, which will take up a LOT of memory). Detailed in [this section](#model-service-architecture)
