@@ -128,7 +128,7 @@ Checks if the API is running and models are loaded.
 
 ## Model Service Architecture
 
-```mermaid
+```
 ┌─────────────────┐
 │  Model Service  │  ← Loads models once
 │  (Port 9000)    │
