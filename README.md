@@ -79,7 +79,7 @@ Performs text analysis based on the provided configuration.
 
 ```json
 {
-  "text": "Me comunico de banco Santander, sucursal de Río Gallegos, provincia de Santa Cruz, para ofrecerle un plan de refinanciamiento de su deuda.",
+  "text": "Me comunico de banco Pirulín, sucursal de Río Gallegos, provincia de Santa Cruz, para ofrecerle una nueva tarjeta de crédito.",
   "config": {
     "sentiment": true,
     "emotion": true,
@@ -97,21 +97,21 @@ Performs text analysis based on the provided configuration.
   "sentiment": {
     "label": "NEU",
     "probas": {
-      "NEG": 0.04190051183104515,
-      "NEU": 0.8938852548599243,
-      "POS": 0.06421419233083725
+      "NEG": 0.03819059580564499,
+      "NEU": 0.8936434388160706,
+      "POS": 0.06816600263118744
     }
   },
   "emotion": {
     "label": "others",
     "probas": {
-      "others": 0.9910634756088257,
-      "joy": 0.0018530330853536725,
-      "sadness": 0.001563094207085669,
-      "anger": 0.0008315984159708023,
-      "surprise": 0.002768223639577627,
-      "disgust": 0.0005381192313507199,
-      "fear": 0.0013824430061504245
+      "others": 0.9905683398246765,
+      "joy": 0.0025127320550382137,
+      "sadness": 0.0015033908421173692,
+      "anger": 0.0007497705519199371,
+      "surprise": 0.0027770218439400196,
+      "disgust": 0.0005580394063144922,
+      "fear": 0.0013307915069162846
     }
   },
   "hate_speech": null,
@@ -122,7 +122,7 @@ Performs text analysis based on the provided configuration.
       "comunico",
       "de",
       "banco",
-      "Santander",
+      "Pirulín",
       ",",
       "sucursal",
       "de",
@@ -136,13 +136,11 @@ Performs text analysis based on the provided configuration.
       ",",
       "para",
       "ofrecerle",
-      "un",
-      "plan",
+      "una",
+      "nueva",
+      "tarjeta",
       "de",
-      "refinanciamiento",
-      "de",
-      "su",
-      "deuda",
+      "crédito",
       "."
     ],
     "labels": [
@@ -157,12 +155,10 @@ Performs text analysis based on the provided configuration.
       "B-LOC",
       "I-LOC",
       "O",
-      "B-LOC",
-      "I-LOC",
-      "I-LOC",
-      "I-LOC",
       "O",
       "O",
+      "I-LOC",
+      "I-LOC",
       "O",
       "O",
       "O",
@@ -176,21 +172,21 @@ Performs text analysis based on the provided configuration.
     "entities": [
       {
         "type": "ORG",
-        "text": "banco Santander",
+        "text": "banco Pirulín",
         "start": 15,
-        "end": 30
+        "end": 28
       },
       {
         "type": "LOC",
         "text": "Río Gallegos",
-        "start": 44,
-        "end": 56
+        "start": 42,
+        "end": 54
       },
       {
         "type": "LOC",
-        "text": "provincia de Santa Cruz",
-        "start": 58,
-        "end": 81
+        "text": "Santa Cruz",
+        "start": 69,
+        "end": 79
       }
     ]
   },
