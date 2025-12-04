@@ -123,4 +123,20 @@ Checks if the API is running and models are loaded.
 - [ ] GPU based computing when available
 - [ ] Model loading based on configuration settings using environment variables
 - [ ] Connection to DB using task-management and uuid-based system from transcriptions using WhisperX (separate service that connects to the same DB using SQL alchemy)
-- [ ] Thread detection and dynamic thread usage
+- [x] Thread detection and dynamic thread usage
+- [ ] Implement model service architecture (currently the models get loaded once per thread, which will take up a LOT of memory). Detailed in [this section](#model-service-architecture)
+
+## Model Service Architecture
+
+```mermaid
+┌─────────────────┐
+│  Model Service  │  ← Loads models once
+│  (Port 9000)    │
+└─────────────────┘
+        ↑
+        │ Inference requests
+        │
+┌───────┴─────────────────────────────┐
+│  Worker 1   │ Worker 2  │ Worker 3  │
+└─────────────────────────────────────┘
+```
