@@ -79,15 +79,13 @@ Performs text analysis based on the provided configuration.
 
 ```json
 {
-  "text": "Hola, ¿cómo estás?",
+  "text": "Me comunico de banco Santander, sucursal de Río Gallegos, provincia de Santa Cruz, para ofrecerle un plan de refinanciamiento de su deuda.",
   "config": {
     "sentiment": true,
     "emotion": true,
-    "hate_speech": false,
-    "irony": false,
     "ner": true,
-    "pos": false,
-    "targeted_sentiment": false
+    "targeted_sentiment": true,
+    "lang": "en"
   }
 }
 ```
@@ -98,13 +96,109 @@ Performs text analysis based on the provided configuration.
 {
   "sentiment": {
     "label": "NEU",
-    "probas": { ... }
+    "probas": {
+      "NEG": 0.04190051183104515,
+      "NEU": 0.8938852548599243,
+      "POS": 0.06421419233083725
+    }
   },
-  "emotion": { ... },
+  "emotion": {
+    "label": "others",
+    "probas": {
+      "others": 0.9910634756088257,
+      "joy": 0.0018530330853536725,
+      "sadness": 0.001563094207085669,
+      "anger": 0.0008315984159708023,
+      "surprise": 0.002768223639577627,
+      "disgust": 0.0005381192313507199,
+      "fear": 0.0013824430061504245
+    }
+  },
+  "hate_speech": null,
+  "irony": null,
   "ner": {
-    "tokens": ["Hola", ",", "¿", "cómo", "estás", "?"],
-    "labels": ["O", "O", "O", "O", "O", "O"]
-  }
+    "tokens": [
+      "Me",
+      "comunico",
+      "de",
+      "banco",
+      "Santander",
+      ",",
+      "sucursal",
+      "de",
+      "Río",
+      "Gallegos",
+      ",",
+      "provincia",
+      "de",
+      "Santa",
+      "Cruz",
+      ",",
+      "para",
+      "ofrecerle",
+      "un",
+      "plan",
+      "de",
+      "refinanciamiento",
+      "de",
+      "su",
+      "deuda",
+      "."
+    ],
+    "labels": [
+      "O",
+      "O",
+      "O",
+      "B-ORG",
+      "I-ORG",
+      "O",
+      "O",
+      "O",
+      "B-LOC",
+      "I-LOC",
+      "O",
+      "B-LOC",
+      "I-LOC",
+      "I-LOC",
+      "I-LOC",
+      "O",
+      "O",
+      "O",
+      "O",
+      "O",
+      "O",
+      "O",
+      "O",
+      "O",
+      "O",
+      "O"
+    ],
+    "entities": [
+      {
+        "type": "ORG",
+        "text": "banco Santander",
+        "start": 15,
+        "end": 30
+      },
+      {
+        "type": "LOC",
+        "text": "Río Gallegos",
+        "start": 44,
+        "end": 56
+      },
+      {
+        "type": "LOC",
+        "text": "provincia de Santa Cruz",
+        "start": 58,
+        "end": 81
+      }
+    ]
+  },
+  "pos": null,
+  "targeted_sentiment": null,
+  "warnings": [
+    "Targeted sentiment analysis is only available in Spanish (es). Skipping."
+  ]
 }
 ```
 
