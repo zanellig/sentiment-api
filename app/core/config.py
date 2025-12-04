@@ -7,6 +7,32 @@ class PysentimientoSettings(BaseSettings):
     LANG: str = "es"
     DEFAULT_MODELS: list[str] = ["sentiment", "emotion", "hate_speech"]
 
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore",
+    )
+
+    @field_validator("LANG", mode="before")
+    @classmethod
+    def normalize_lang(cls, v: str) -> str:
+        """Normalize language code to supported formats."""
+        if not v:
+            return "es"
+
+        # Normalize to lowercase
+        v_lower = v.lower()
+
+        # Check if it starts with supported languages
+        supported = ['es', 'en', 'it', 'pt']
+        for lang in supported:
+            if v_lower == lang or v_lower.startswith(f"{lang}_") or v_lower.startswith(f"{lang}."):
+                return lang
+
+        # Default fallback
+        return "es"
+
 class Settings(BaseSettings):
     LOG_LEVEL: str = Field(
         default="INFO",
@@ -33,7 +59,7 @@ class Settings(BaseSettings):
 
     # Nested settings
     pysentimiento: PysentimientoSettings = Field(default_factory=lambda: PysentimientoSettings())
-    
+
     @field_validator("ENVIRONMENT", mode="before")
     @classmethod
     def normalize_environment(cls, v: str) -> str:
