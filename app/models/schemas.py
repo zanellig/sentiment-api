@@ -1,3 +1,4 @@
+from enum import Enum
 from pydantic import BaseModel, Field
 
 class ConfigInput(BaseModel):
@@ -111,6 +112,29 @@ class TokenOutput(BaseModel):
         }
     }
 
+class NEROutput(TokenOutput):
+    """Output schema for Named Entity Recognition (NER)."""
+    
+    entities: list[str] = Field(
+        description="List of identified entities with their types and positions",
+        examples=[["Banco Santander (ORG)", "Río Gallegos (LOC)", "provincia de Santa Cruz (LOC)"]]
+    )
+    
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "tokens": ["Pablo", "vive", "en", "Madrid"],
+                    "labels": ["B-PER", "O", "O", "B-LOC"],
+                    "entities": [
+                        "Pablo (PER)",
+                        "Madrid (LOC)"
+                    ]
+                }
+            ]
+        }
+    }
+
 class AnalysisResponse(BaseModel):
     """Complete analysis response with all requested analyses."""
     
@@ -134,7 +158,7 @@ class AnalysisResponse(BaseModel):
         description="Irony detection result",
         examples=[{"label": "not_ironic", "score": 0.87}]
     )
-    ner: TokenOutput | None = Field(
+    ner: NEROutput | None = Field(
         default=None,
         description="Named Entity Recognition results with tokens and entity labels"
     )
@@ -168,3 +192,8 @@ class AnalysisResponse(BaseModel):
         }
     }
 
+class Device(str, Enum):
+    """Enum for device types."""
+
+    cuda = "cuda"
+    cpu = "cpu"

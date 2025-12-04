@@ -1,69 +1,62 @@
+import sys
 from functools import lru_cache
+from dotenv import load_dotenv
 from concurrent.futures import ThreadPoolExecutor
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, field_validator
+import torch
 
-class PysentimientoSettings(BaseSettings):
+from app.models.schemas import Device
+
+load_dotenv()
+
+class PysentimientoSettings(BaseSettings): 
     LANG: str = "es"
     DEFAULT_MODELS: list[str] = ["sentiment", "emotion", "hate_speech"]
-
+    PREPROCESS_TWEETS: bool = False
+    
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=True,
-        extra="ignore",
+        env_prefix="PYSENTIMIENTO__",
     )
 
     @field_validator("LANG", mode="before")
     @classmethod
     def normalize_lang(cls, v: str) -> str:
-        """Normalize language code to supported formats."""
         if not v:
             return "es"
-
-        # Normalize to lowercase
         v_lower = v.lower()
-
-        # Check if it starts with supported languages
         supported = ['es', 'en', 'it', 'pt']
         for lang in supported:
             if v_lower == lang or v_lower.startswith(f"{lang}_") or v_lower.startswith(f"{lang}."):
                 return lang
-
-        # Default fallback
         return "es"
 
 class Settings(BaseSettings):
-    LOG_LEVEL: str = Field(
-        default="INFO",
-        description="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
-    )
+    LOG_LEVEL: str = Field(default="INFO")
+    LOG_FORMAT: str = Field(default="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    ENVIRONMENT: str = Field(default="production")
 
-    LOG_FORMAT: str = Field(
-        default="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        description="Log format: text or json",
-    )
-
-    ENVIRONMENT: str = Field(
-        default="production",
-        description="Environment: development, testing, production",
+    DEVICE: Device = Field(
+        default_factory=lambda: Device.cuda
+        if torch.cuda.is_available()
+        else Device.cpu,
+        description="Device to use for computation (cuda or cpu)",
     )
 
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        case_sensitive=True,
+        case_sensitive=False,
         extra="ignore",
-        env_nested_delimiter="__",
     )
 
     # Nested settings
-    pysentimiento: PysentimientoSettings = Field(default_factory=lambda: PysentimientoSettings())
+    pysentimiento: PysentimientoSettings = Field(default_factory=PysentimientoSettings)
 
     @field_validator("ENVIRONMENT", mode="before")
     @classmethod
     def normalize_environment(cls, v: str) -> str:
-        """Normalize environment to lowercase."""
         return str(v).lower() if v else "production"
 
 # Global executor

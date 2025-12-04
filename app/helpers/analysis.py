@@ -51,6 +51,7 @@ def _run_analysis(text: str, config: ConfigInput) -> dict:
         ner_pred = analyzer_service.get_model("ner").predict(text)
         logger.info("NER result: %s", ner_pred)
         response["ner"] = {
+            "entities": ner_pred.entities,
             "tokens": ner_pred.tokens,
             "labels": ner_pred.labels
         }
