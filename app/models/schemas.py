@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 class ConfigInput(BaseModel):
     """Configuration for text analysis options."""
-    
+
     lang: str = Field(
         default="es",
         description="Language code for analysis (e.g., 'es' for Spanish, 'en' for English)",
@@ -37,7 +37,7 @@ class ConfigInput(BaseModel):
         default=False,
         description="Enable targeted sentiment analysis (sentiment towards specific entities)"
     )
-    
+
     model_config = {
         "json_schema_extra": {
             "examples": [
@@ -57,7 +57,7 @@ class ConfigInput(BaseModel):
 
 class TextInput(BaseModel):
     """Input schema for text analysis request."""
-    
+
     text: str = Field(
         ...,
         description="The text to analyze",
@@ -68,7 +68,7 @@ class TextInput(BaseModel):
         default_factory=ConfigInput,
         description="Analysis configuration options"
     )
-    
+
     model_config = {
         "json_schema_extra": {
             "examples": [
@@ -91,7 +91,7 @@ class TextInput(BaseModel):
 
 class TokenOutput(BaseModel):
     """Output schema for token-level analysis (NER, POS)."""
-    
+
     tokens: list[str] = Field(
         description="List of tokens/words identified in the text",
         examples=[["Pablo", "vive", "en", "Madrid"]]
@@ -100,7 +100,7 @@ class TokenOutput(BaseModel):
         description="Corresponding labels for each token",
         examples=[["B-PER", "O", "O", "B-LOC"]]
     )
-    
+
     model_config = {
         "json_schema_extra": {
             "examples": [
@@ -112,14 +112,37 @@ class TokenOutput(BaseModel):
         }
     }
 
+class Entity(BaseModel):
+    """Schema for a named entity."""
+
+    type: str = Field(description="Entity type (e.g., ORG, LOC, PER)")
+    text: str = Field(description="The text of the entity")
+    start: int = Field(description="Start character index")
+    end: int = Field(description="End character index")
+
 class NEROutput(TokenOutput):
     """Output schema for Named Entity Recognition (NER)."""
-    
-    entities: list[str] = Field(
+
+    entities: list[Entity] = Field(
         description="List of identified entities with their types and positions",
-        examples=[["Banco Santander (ORG)", "Río Gallegos (LOC)", "provincia de Santa Cruz (LOC)"]]
+        examples=[
+            [
+                {
+                    "type": "ORG",
+                    "text": "Banco Santander",
+                    "start": 15,
+                    "end": 30
+                },
+                {
+                    "type": "LOC",
+                    "text": "Río Gallegos",
+                    "start": 44,
+                    "end": 56
+                }
+            ]
+        ]
     )
-    
+
     model_config = {
         "json_schema_extra": {
             "examples": [
@@ -127,8 +150,18 @@ class NEROutput(TokenOutput):
                     "tokens": ["Pablo", "vive", "en", "Madrid"],
                     "labels": ["B-PER", "O", "O", "B-LOC"],
                     "entities": [
-                        "Pablo (PER)",
-                        "Madrid (LOC)"
+                        {
+                            "type": "PER",
+                            "text": "Pablo",
+                            "start": 0,
+                            "end": 5
+                        },
+                        {
+                            "type": "LOC",
+                            "text": "Madrid",
+                            "start": 14,
+                            "end": 20
+                        }
                     ]
                 }
             ]
@@ -137,7 +170,7 @@ class NEROutput(TokenOutput):
 
 class AnalysisResponse(BaseModel):
     """Complete analysis response with all requested analyses."""
-    
+
     sentiment: dict | None = Field(
         default=None,
         description="Sentiment analysis result with scores for positive, negative, neutral",
@@ -174,7 +207,7 @@ class AnalysisResponse(BaseModel):
         default_factory=list,
         description="Any warnings or notices about the analysis"
     )
-    
+
     model_config = {
         "json_schema_extra": {
             "examples": [
