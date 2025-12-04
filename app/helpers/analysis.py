@@ -1,10 +1,10 @@
 import logging
 from app.services.analyzer import analyzer_service
-from app.models.schemas import ConfigInput
+from app.models.schemas import ConfigInput, AnalysisResponse
 
 logger = logging.getLogger(__name__)
 
-def _run_analysis(text: str, config: ConfigInput) -> dict:
+def _run_analysis(text: str, config: ConfigInput) -> AnalysisResponse:
     """CPU-bound inference in thread pool"""
 
     response = {}
