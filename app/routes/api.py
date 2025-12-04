@@ -115,5 +115,9 @@ async def health_check():
     
     Returns the current health status and the count of loaded models.
     """
-    return {"status": "healthy", "models_loaded": len(analyzer_service.models) > 0}
-
+    loaded_models = list(analyzer_service.models.keys())
+    return {
+        "status": "healthy", 
+        "models_loaded": len(loaded_models),
+        "models": loaded_models
+    }
