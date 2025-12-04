@@ -3,6 +3,7 @@ import os
 import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from app.core.config import executor, setup_logging
 from app.services.analyzer import analyzer_service
 from app.routes.api import router
@@ -64,6 +65,11 @@ Check `/health` endpoint to verify service status.
     lifespan=lifespan,
 )
 app.include_router(router)
+
+@app.get("/", include_in_schema=False)
+async def root():
+    """Redirect root to API documentation."""
+    return RedirectResponse(url="/docs")
 
 if __name__ == "__main__":
     workers = os.cpu_count() or 1
