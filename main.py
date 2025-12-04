@@ -4,7 +4,7 @@ import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, status
 from fastapi.responses import RedirectResponse
-from app.core.config import executor, setup_logging
+from app.core.config import executor, setup_logging, settings
 from app.services.analyzer import analyzer_service
 from app.routes.api import router
 
@@ -79,5 +79,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8000,
         workers=1,
-        reload=False
+        reload=settings.ENVIRONMENT == "development"
     )

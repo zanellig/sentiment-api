@@ -1,14 +1,17 @@
 import logging
-from pydantic import BaseModel
 from concurrent.futures import ThreadPoolExecutor
+from pydantic_settings import BaseSettings
 
-class Settings(BaseModel):
+class Settings(BaseSettings):
     LANG: str = "es"
     DEFAULT_MODELS: list[str] = ["sentiment", "emotion", "hate_speech"]
     LOG_LEVEL: str = "INFO"
-    
+    ENVIRONMENT: str = "production"  # "development" or "production"
+
     class Config:
         arbitrary_types_allowed = True
+        env_file = ".env"
+        env_file_encoding = "utf-8"
 
 settings = Settings()
 
