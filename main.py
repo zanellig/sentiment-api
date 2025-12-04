@@ -2,7 +2,7 @@ import logging
 import os
 import uvicorn
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from fastapi.responses import RedirectResponse
 from app.core.config import executor, setup_logging
 from app.services.analyzer import analyzer_service
@@ -69,7 +69,7 @@ app.include_router(router)
 @app.get("/", include_in_schema=False)
 async def root():
     """Redirect root to API documentation."""
-    return RedirectResponse(url="/docs")
+    return RedirectResponse(url="/docs", status_code=status.HTTP_308_PERMANENT_REDIRECT)
 
 if __name__ == "__main__":
     workers = os.cpu_count() or 1
