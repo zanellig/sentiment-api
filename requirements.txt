@@ -2,3 +2,4 @@ fastapi
 pysentimiento
 uvicorn[standard]
 pydantic
+pydantic-settings

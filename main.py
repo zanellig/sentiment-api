@@ -1,10 +1,11 @@
 import logging
 import os
-import uvicorn
 from contextlib import asynccontextmanager
+
+import uvicorn
 from fastapi import FastAPI, status
 from fastapi.responses import RedirectResponse
-from app.core.config import executor, setup_logging, settings
+from app.core.config import executor, settings
 from app.services.analyzer import analyzer_service
 from app.routes.api import router
 
@@ -13,7 +14,10 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager to handle startup and shutdown events."""
-    setup_logging()
+    logging.basicConfig(
+        level=settings.LOG_LEVEL,
+        format=settings.LOG_FORMAT,
+    )
     logger.info("Loading models...")
     analyzer_service.load_models()
     logger.info("Models loaded successfully!")

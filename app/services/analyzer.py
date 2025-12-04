@@ -3,6 +3,7 @@ from typing import Dict, Any
 from pysentimiento import create_analyzer
 from app.core.config import settings
 
+
 logger = logging.getLogger(__name__)
 
 class AnalyzerService:
@@ -17,7 +18,7 @@ class AnalyzerService:
     def load_models(self):
         """Load default models defined in settings."""
         logger.info("Loading default models...")
-        for task in settings.DEFAULT_MODELS:
+        for task in settings.pysentimiento.DEFAULT_MODELS:
             self._load_model(task)
         logger.info("Default models loaded successfully.")
 
@@ -25,7 +26,7 @@ class AnalyzerService:
         if task not in self.models:
             logger.info("Loading model: %s", task)
             try:
-                self.models[task] = create_analyzer(task=task, lang=settings.LANG)
+                self.models[task] = create_analyzer(task=task, lang=settings.pysentimiento.LANG)
             except Exception as e:
                 logger.error("Failed to load model %s: %s", task, e)
                 raise e
