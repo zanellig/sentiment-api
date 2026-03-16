@@ -210,6 +210,7 @@ Checks if the API is running and models are loaded.
 ## Roadmap
 
 - [x] On demand text analysis
+- [ ] Add repository + db service for task persistance. See [this repo](https://github.com/pavelzbornik/whisperX-FastAPI) for reference on models.
 - [ ] GPU based computing when available
 - [x] Model loading based on configuration settings using environment variables
 - [ ] Connection to DB using task-management and uuid-based system from transcriptions using WhisperX (separate service that connects to the same DB using SQL alchemy)
