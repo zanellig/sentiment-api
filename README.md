@@ -1,6 +1,10 @@
 # Sentiment Analysis API
 
-A comprehensive NLP API built with **FastAPI** and **pysentimiento**, capable of performing multiple text analysis tasks on Spanish text, including sentiment analysis, emotion detection, hate speech detection, and more.
+This wrapper around [pysentimiento](https://github.com/pysentimiento/pysentimiento) tries to treat it as an isolated microservice with which many other applications might want to interact, such as WhisperX.
+
+Very early development.
+
+If it weren't for pysentimiento and the team that built it, this couldn't be possible.
 
 ## Features
 
@@ -17,26 +21,27 @@ A comprehensive NLP API built with **FastAPI** and **pysentimiento**, capable of
 
 1.  **Clone the repository**
 2.  **Create a virtual environment** (recommended):
+    > Using uv
+    ```bash
+    uv venv
+    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+    ```
+    > Using standard venv
     ```bash
     python -m venv .venv
     source .venv/bin/activate  # On Windows: .venv\Scripts\activate
     ```
-3.  **Install dependencies**:
+4.  **Install dependencies**:
     ```bash
     pip install -r requirements.txt
     ```
+    > Will migrate to a `pyproject.toml` with `uv` as the package manager
 
 ## Usage
 
 ### Running the Server
 
-You can start the application directly with Python, which will automatically configure the number of workers based on your CPU cores:
-
-```bash
-python main.py
-```
-
-Alternatively, you can use `uvicorn` directly if you need specific control:
+You can start the application directly which will automatically configure the number of workers based on your CPU cores:
 
 ```bash
 python main.py
