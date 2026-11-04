@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Audio analysis pipeline: Jobs API, Transcriber and Analyzer"
 requires-python = ">=3.12"
 license = "MIT"
-dependencies = ["analyzer", "contracts"]
+dependencies = ["analyzer", "contracts", "jobs-api"]
 
 [dependency-groups]
 dev = ["pytest", "httpx"]
@@ -15,6 +15,7 @@ members = ["services/*", "packages/*"]
 [tool.uv.sources]
 analyzer = { workspace = true }
 contracts = { workspace = true }
+jobs-api = { workspace = true }
 torch = { index = "pytorch-cpu" }
 
 [[tool.uv.index]]
