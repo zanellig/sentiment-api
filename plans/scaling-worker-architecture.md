@@ -1,7 +1,7 @@
 # Plan: Escalar sentiment-api a arquitectura worker/cola con batching GPU
 
 > [!WARNING]
-> Plan parcialmente reemplazado por los ADRs en `docs/adr/` (0001–0007): sin `DynamicBatcher`, el Jobs API orquesta, MySQL como fuente de verdad y un Analyzer por idioma. Las secciones que los contradicen no están vigentes.
+> Plan parcialmente reemplazado por los ADRs en `docs/adr/` (0001–0022): sin `DynamicBatcher`, el Jobs API orquesta, Celery en lugar de Arq, Postgres con pgvector y un Analyzer por idioma. Las secciones que los contradicen no están vigentes.
 
 ## Context
 
