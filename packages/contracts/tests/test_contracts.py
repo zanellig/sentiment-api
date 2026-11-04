@@ -31,6 +31,8 @@ AUDIO_SEGMENT = Segment(
     words=[
         Word(text="hola", start=0.0, end=0.5, score=0.9, speaker="SPEAKER_00"),
         Word(text="che", start=0.6, end=1.2, score=0.8),
+        # WhisperX leaves words it cannot align without times or score.
+        Word(text="3"),
     ],
 )
 TEXT_SEGMENT = Segment(index=1, text="me encanta")

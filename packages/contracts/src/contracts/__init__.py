@@ -38,12 +38,15 @@ class Analysis(StrEnum):
 
 
 class Word(_Model):
-    """A word of a Segment as aligned by WhisperX."""
+    """A word of a Segment as aligned by WhisperX.
+
+    Words WhisperX cannot align (numbers, symbols) come without times or score.
+    """
 
     text: str
-    start: Seconds
-    end: Seconds
-    score: Probability
+    start: Seconds | None = None
+    end: Seconds | None = None
+    score: Probability | None = None
     speaker: str | None = None
 
 
