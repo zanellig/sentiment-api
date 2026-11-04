@@ -21,8 +21,12 @@ A voice that diarization tells apart inside one Transcript, labelled per Job (`S
 _Avoid_: Person, participant, user
 
 **Voice**:
-A pseudonymous identity that recognises the same voice across Jobs of one organisation; each Speaker points to at most one Voice.
+A pseudonymous identity that recognises the same voice across Jobs of one Tenant; each Speaker points to at most one Voice.
 _Avoid_: Speaker (that one lives inside a single Transcript), person, profile
+
+**Tenant**:
+An organisation that uses the service and owns its Jobs, Voices and privacy policy.
+_Avoid_: Client, customer (those are the Tenant's own customers, who speak in the audio), account
 
 **Analysis**:
 One kind of NLP labelling run over Segments: sentiment, emotion, hate speech, irony, NER, POS or targeted sentiment.

@@ -1,0 +1,3 @@
+# La privacidad es una política de cada Tenant, con valores por defecto conservadores
+
+Cada Tenant configura su política de privacidad: retención del audio (borrarlo al terminar la transcripción, o guardarlo N días) y si permite asociar una identidad real a sus Voices (ADR-0016). Más adelante se suma ocultar datos personales en el texto. Por defecto, el audio se borra al terminar la transcripción y no se permite identidad. Se eligió así porque los Tenants tienen consentimientos distintos de sus hablantes: algunos quieren todo anónimo y otros necesitan guardar nombres. Con valores por defecto conservadores, nadie queda expuesto por olvidarse de configurar algo.

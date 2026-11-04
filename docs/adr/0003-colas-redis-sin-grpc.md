@@ -6,4 +6,4 @@ Los servicios intercambian mensajes JSON validados por los modelos de `packages/
 
 - **gRPC entre servicios**: descartado. Haría falta generar código en los clientes, se pierde OpenAPI, y en K8s el HTTP/2 necesita balanceo L7. Solo tendría sentido con un consumidor interno que pida respuestas síncronas de baja latencia a mucho volumen.
 - **Postgres/MySQL como cola** (`SKIP LOCKED`): descartado. Los workers necesitarían credenciales de la base, y eso contradice el ADR-0002.
-- **RabbitMQ**: queda pendiente junto con la elección de la librería de colas.
+- **RabbitMQ**: no hace falta por ahora. La librería elegida (ADR-0014) puede cambiar de broker con configuración.
