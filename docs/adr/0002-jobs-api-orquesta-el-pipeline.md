@@ -12,4 +12,4 @@ El Jobs API es el único dueño de la base y del ciclo de vida del Job (`uploade
 ## Consequences
 
 - El Jobs API corre un consumidor de `results` además del servidor HTTP.
-- El `POST /analyze` síncrono del servicio actual desaparece del Analyzer.
+- El `POST /analyze` síncrono desaparece. Lo reemplazan los Jobs de solo texto: `POST /jobs` con `{text, lang}`, que entran directo en `analyzing`.

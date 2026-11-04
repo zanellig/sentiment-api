@@ -16,6 +16,10 @@ _Avoid_: Transcription (for the result), text
 A stretch of a Transcript with a start, an end, a speaker and its text; the smallest thing an Analysis labels.
 _Avoid_: Sentence, chunk, utterance
 
+**Speaker**:
+A voice that diarization tells apart inside one Transcript, labelled per Job (`SPEAKER_00`); not a known person.
+_Avoid_: Person, participant, user
+
 **Analysis**:
 One kind of NLP labelling run over Segments: sentiment, emotion, hate speech, irony, NER, POS or targeted sentiment.
 _Avoid_: Task (pysentimiento's `task=` argument keeps that name), model
