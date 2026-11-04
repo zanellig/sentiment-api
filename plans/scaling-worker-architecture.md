@@ -1,5 +1,8 @@
 # Plan: Escalar sentiment-api a arquitectura worker/cola con batching GPU
 
+> [!WARNING]
+> Plan parcialmente reemplazado por los ADRs en `docs/adr/` (0001–0007): sin `DynamicBatcher`, el Jobs API orquesta, MySQL como fuente de verdad y un Analyzer por idioma. Las secciones que los contradicen no están vigentes.
+
 ## Context
 
 El proyecto actual (FastAPI + `pysentimiento`) corre toda la inferencia en un `ThreadPoolExecutor(max_workers=4)` con llamadas `model.predict(text)` texto-a-texto, sin batching. Esto no escala a 10k jobs concurrentes: la inferencia con transformers es CPU/GPU-bound, no I/O-bound, y cada `.predict()` individual desaprovecha el paralelismo de la GPU.
