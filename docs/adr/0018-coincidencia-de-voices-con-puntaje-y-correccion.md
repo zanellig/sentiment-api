@@ -1,0 +1,3 @@
+# Las coincidencias de Voices guardan su puntaje y se pueden corregir
+
+Cada vínculo Speaker → Voice guarda su similitud. El umbral se configura y se calibra con una muestra etiquetada de audios reales. Cada Voice guarda sus últimos K embeddings (por ejemplo, 20), y un Speaker coincide con una Voice según la mayor similitud contra cualquiera de ellos. Más adelante, el Tenant podrá unir dos Voices que son la misma persona o separar una que mezcla dos. Se eligió así porque ningún umbral es perfecto: con el puntaje guardado se puede recalibrar sin reprocesar audio, y guardar K embeddings tolera que una voz suene distinta según el canal (teléfono o micrófono).
