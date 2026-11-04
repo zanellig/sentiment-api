@@ -117,11 +117,18 @@ class SequenceResult(_Model):
     analysis: Literal[
         Analysis.SENTIMENT,
         Analysis.EMOTION,
-        Analysis.HATE_SPEECH,
         Analysis.IRONY,
         Analysis.TARGETED_SENTIMENT,
     ]
     label: str
+    probabilities: dict[str, Probability]
+
+
+class MultiLabelResult(_Model):
+    """Every label that applies to the Segment (none when nothing applies), with all probabilities."""
+
+    analysis: Literal[Analysis.HATE_SPEECH]
+    labels: list[str]
     probabilities: dict[str, Probability]
 
 
@@ -149,7 +156,9 @@ class NerResult(_Model):
     entities: list[Entity]
 
 
-AnalysisResult = Annotated[SequenceResult | PosResult | NerResult, Field(discriminator="analysis")]
+AnalysisResult = Annotated[
+    SequenceResult | MultiLabelResult | PosResult | NerResult, Field(discriminator="analysis")
+]
 
 
 class SegmentAnalyses(_Model):
@@ -183,6 +192,7 @@ __all__ = [
     "AnalysisResult",
     "AnalyzeRequested",
     "Entity",
+    "MultiLabelResult",
     "NerResult",
     "PosResult",
     "Segment",

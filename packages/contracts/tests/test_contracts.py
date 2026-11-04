@@ -13,6 +13,7 @@ from contracts import (
     PosResult,
     Segment,
     SequenceResult,
+    MultiLabelResult,
     SpeakerEmbedding,
     Step,
     StepFailed,
@@ -63,6 +64,11 @@ MESSAGES = [
                         label="POS",
                         probabilities={"POS": 0.9, "NEU": 0.08, "NEG": 0.02},
                     ),
+                    MultiLabelResult(
+                        analysis=Analysis.HATE_SPEECH,
+                        labels=[],
+                        probabilities={"hateful": 0.1, "targeted": 0.05, "aggressive": 0.02},
+                    ),
                     NerResult(
                         analysis=Analysis.NER,
                         tokens=["hola", "che"],
@@ -94,6 +100,14 @@ MALFORMED = [
         {
             "segments": [
                 {"index": 0, "results": [{"analysis": "pos", "label": "POS", "probabilities": {}}]}
+            ]
+        },
+    ),
+    (
+        AnalysisReady,
+        {
+            "segments": [
+                {"index": 0, "results": [{"analysis": "hate_speech", "label": "hateful", "probabilities": {}}]}
             ]
         },
     ),
@@ -131,3 +145,21 @@ def test_imports_without_torch():
     # The workspace venv has torch, so hide it from the import system in a fresh interpreter.
     result = subprocess.run([sys.executable, "-c", BLOCK_TORCH], capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
+
+
+@pytest.mark.parametrize("labels", [[], ["hateful", "aggressive"]])
+def test_hate_speech_result_decodes_from_a_json_dict(labels: list[str]):
+    payload = {
+        "job_id": str(uuid4()),
+        "tenant_id": "acme",
+        "segments": [
+            {
+                "index": 0,
+                "results": [
+                    {"analysis": "hate_speech", "labels": labels, "probabilities": {"hateful": 0.9}}
+                ],
+            }
+        ],
+    }
+    result = AnalysisReady.model_validate(payload).segments[0].results[0]
+    assert isinstance(result, MultiLabelResult) and result.labels == labels
