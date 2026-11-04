@@ -46,8 +46,10 @@ Worker Arq (M réplicas, GPU)
 
 **`app/services/inference.py`** (nuevo) — `InferenceEngine`:
 - `infer_batch(texts: list[str], tasks: list[str]) -> list[dict]`
-- Internamente llama `model.predict(texts)` (pysentimiento ya acepta listas → batch nativo).
-- Device-aware: pasa `device=settings.DEVICE` a `create_analyzer` (hoy no se usa).
+- Dueño del device: mueve cada modelo a `settings.DEVICE` y corre la inferencia él mismo.
+  - `create_analyzer` **no acepta `device`**: en tareas de secuencia el kwarg se ignora (`BaseAnalyzer` lo traga) y en `ner`/`pos` da `TypeError`. Hoy el device lo elige el `Trainer` interno de pysentimiento (`TrainingArguments.device` → CUDA si hay).
+  - Tareas de secuencia (`sentiment`, `emotion`, `hate_speech`, `irony`, `targeted_sentiment`): forward pass propio con `analyzer.model` + `analyzer.tokenizer` (`preprocess_tweet` + softmax/sigmoid según `problem_type`, labels de `config.id2label`). `predict()` no sirve porque manda los inputs a `eval_trainer.args.device`, no al device del modelo.
+  - `ner`/`pos`: alcanza con `analyzer.model.to(device)` y seguir usando `predict(texts)`, porque toman el device de `next(model.parameters())`.
 - Warmup en startup para evitar latencia del primer request.
 
 **`app/services/batcher.py`** (nuevo) — `DynamicBatcher`:
@@ -82,7 +84,7 @@ Worker Arq (M réplicas, GPU)
 **`app/core/config.py`**
 - Añadir: `REDIS_URL: str`, `BATCH_MAX_SIZE: int = 32`, `BATCH_MAX_WAIT_MS: int = 30`, `WORKER_CONCURRENCY: int = 4`, `SYNC_TIMEOUT_S: int = 10`, `JOB_RESULT_TTL_S: int = 3600`.
 - Eliminar `ThreadPoolExecutor` del módulo (ya no se usa; el API solo encola).
-- Pasar `DEVICE` a `create_analyzer` (fix latente).
+- `DEVICE` no se pasa a `create_analyzer` (no tiene ese parámetro); lo consume `InferenceEngine`.
 
 ### Schemas
 
@@ -153,7 +155,7 @@ Actualizar con:
 - `AnalyzerService.get_model()` ya soporta lazy loading — reutilizable dentro del `InferenceEngine`.
 - `settings.pysentimiento.DEFAULT_MODELS` y el validador de `LANG` se mantienen.
 - `ConfigInput` / `AnalysisResponse` / `TokenOutput` / `NEROutput` se mantienen sin cambios (solo se agrega `JobStatus` encima).
-- `Device` enum se mantiene; se empieza a usar de verdad al pasarlo a `create_analyzer`.
+- `Device` enum se mantiene; se empieza a usar de verdad cuando `InferenceEngine` mueve los modelos a `settings.DEVICE`.
 
 ## Orden de implementación sugerido
 
