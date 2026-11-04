@@ -1,0 +1,18 @@
+[project]
+name = "jobs-api"
+version = "0.1.0"
+description = "Jobs API: owns the Jobs and orchestrates the pipeline"
+requires-python = ">=3.12"
+license = "MIT"
+dependencies = [
+    "alembic",
+    "celery[redis]",
+    "contracts",
+    "fastapi",
+    "psycopg[binary]",
+    "sqlalchemy>=2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

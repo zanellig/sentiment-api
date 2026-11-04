@@ -1,0 +1,11 @@
+[project]
+name = "contracts"
+version = "0.1.0"
+description = "Messages the Jobs API, Transcriber and Analyzer exchange; torch-free"
+requires-python = ">=3.12"
+license = "MIT"
+dependencies = ["pydantic>=2"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

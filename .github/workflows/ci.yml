@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      # Fail instead of skipping the integration tests when Postgres or Redis is missing.
+      REQUIRE_INTEGRATION: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+      - run: docker compose -f deploy/compose.yaml up -d --wait
+      - run: uv sync --locked
+      - run: uv run pytest
+      - if: always()
+        run: docker compose -f deploy/compose.yaml down -v
