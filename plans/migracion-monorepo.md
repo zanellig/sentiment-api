@@ -1,4 +1,4 @@
-# Plan: migrar sentiment-api al pipeline de audio en monorepo
+# Plan: migrar voice-insights (antes sentiment-api) al pipeline de audio en monorepo
 
 Reemplaza a `plans/scaling-worker-architecture.md`. Las decisiones viven en `docs/adr/` (0001–0022) y los términos en `GLOSSARY.md`. Este plan solo fija el **orden** y **cómo se verifica** cada fase. Si algo de acá contradice un ADR, vale el ADR.
 

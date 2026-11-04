@@ -28,7 +28,7 @@ Model weights (several GB) download on first load. Run anything that loads real 
 
 ### Issue tracker
 
-GitHub Issues on `zanellig/sentiment-api`, through `gh`. See `docs/agents/issue-tracker.md`.
+GitHub Issues on `zanellig/voice-insights`, through `gh`. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

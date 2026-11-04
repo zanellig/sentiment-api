@@ -1,4 +1,4 @@
-# Sentiment API
+# Voice Insights
 
 Analyzes the transcripts produced by the transcription pipeline (WhisperX) with pysentimiento models.
 

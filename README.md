@@ -1,4 +1,4 @@
-# sentiment-api
+# voice-insights
 
 Audio analysis pipeline under construction: transcription with diarization (WhisperX) and per-segment sentiment, emotion and NLP analysis (pysentimiento), behind a multi-tenant Jobs API.
 
