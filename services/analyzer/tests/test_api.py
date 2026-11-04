@@ -25,7 +25,12 @@ def test_analyze_returns_fixed_labels(client, text):
 
 
 def test_non_default_model_loads_on_demand(client):
-    # Runs after the irony requests above.
+    from app.core.config import settings
+
+    assert "irony" not in settings.pysentimiento.DEFAULT_MODELS
+    text = next(iter(LABELS["irony"]))
+    client.post("/analyze", json={"text": text, "config": {"lang": "es", "irony": True}})
+
     assert "irony" in client.get("/health").json()["models"]
 
 
