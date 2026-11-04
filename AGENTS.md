@@ -7,6 +7,7 @@ pysentimiento service being migrated into a monorepo audio pipeline: Jobs API, T
 - **Decisions**: `docs/adr/`. Read the ADRs the change touches; a change that contradicts one starts with a new ADR.
 - **Terms**: `GLOSSARY.md`. "task" only names pysentimiento's `task=` argument.
 - **Order and done criteria**: `plans/migracion-monorepo.md`. The ADR wins when they disagree.
+- **Code layout**: each service is a `src/` package organised by responsibility, transports at the edge (ADR-0023). New code goes there, never into `services/analyzer/app/`.
 
 ## Running models
 
