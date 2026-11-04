@@ -20,6 +20,10 @@ _Avoid_: Sentence, chunk, utterance
 A voice that diarization tells apart inside one Transcript, labelled per Job (`SPEAKER_00`); not a known person.
 _Avoid_: Person, participant, user
 
+**Voice**:
+A pseudonymous identity that recognises the same voice across Jobs of one organisation; each Speaker points to at most one Voice.
+_Avoid_: Speaker (that one lives inside a single Transcript), person, profile
+
 **Analysis**:
 One kind of NLP labelling run over Segments: sentiment, emotion, hate speech, irony, NER, POS or targeted sentiment.
 _Avoid_: Task (pysentimiento's `task=` argument keeps that name), model
