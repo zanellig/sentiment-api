@@ -60,8 +60,8 @@ Check `/health` endpoint to verify service status.
         "email": "gonzalozanelli1+support@gmail.com",
     },
     license_info={
-        "name": "GPLv3 License",
-        "url": "https://opensource.org/licenses/GPL-3.0",
+        "name": "MIT License",
+        "url": "https://opensource.org/licenses/MIT",
     },
     docs_url="/docs",
     redoc_url="/redoc",
