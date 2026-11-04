@@ -1,6 +1,6 @@
 # AGENTS.md
 
-pysentimiento service being migrated into a monorepo audio pipeline: Jobs API, Transcriber (WhisperX) and Analyzer (pysentimiento). `app/` is the legacy synchronous service until phase 3 of the migration plan replaces it.
+pysentimiento service being migrated into a monorepo audio pipeline: Jobs API, Transcriber (WhisperX) and Analyzer (pysentimiento). `services/analyzer/app/` is the legacy synchronous service until phase 3 of the migration plan replaces it.
 
 ## Before you change anything
 
@@ -12,11 +12,10 @@ pysentimiento service being migrated into a monorepo audio pipeline: Jobs API, T
 
 Model weights (several GB) download on first load. Run anything that loads real models on Codespaces, RunPod or the RTX 3070 machine; locally, test with fake models.
 
-## Gotchas in `app/`
+## Gotchas in `services/analyzer/app/`
 
 - `create_analyzer` has no `device` parameter: it is ignored for sequence tasks and raises `TypeError` for `ner`/`pos`. Device placement belongs to the Analyzer worker (plan, phase 2).
 - The request's `config.lang` does not choose the model: models load with `settings.pysentimiento.LANG`, keyed by task alone.
-- `app/core/_init_.py` and `app/services/_init_.py` are typos; the folders import as namespace packages until phase 0 renames them.
 
 ## Conventions
 

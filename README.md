@@ -2,7 +2,7 @@
 
 Audio analysis pipeline under construction: transcription with diarization (WhisperX) and per-segment sentiment, emotion and NLP analysis (pysentimiento), behind a multi-tenant Jobs API.
 
-**Status:** early development. The code in `app/` is the legacy synchronous service; the target architecture lives in `docs/adr/`, the vocabulary in `GLOSSARY.md`, and the build order in `plans/migracion-monorepo.md`.
+**Status:** early development. The code in `services/analyzer/app/` is the legacy synchronous service; the target architecture lives in `docs/adr/`, the vocabulary in `GLOSSARY.md`, and the build order in `plans/migracion-monorepo.md`.
 
 ## Credits
 
