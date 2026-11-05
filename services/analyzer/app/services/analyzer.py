@@ -6,6 +6,7 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+
 class AnalyzerService:
     _instance = None
     models: Dict[str, Any] = {}
@@ -26,7 +27,9 @@ class AnalyzerService:
         if task not in self.models:
             logger.info("Loading model: %s", task)
             try:
-                self.models[task] = create_analyzer(task=task, lang=settings.pysentimiento.LANG)
+                self.models[task] = create_analyzer(
+                    task=task, lang=settings.pysentimiento.LANG
+                )
             except Exception as e:
                 logger.error("Failed to load model %s: %s", task, e)
                 raise e
@@ -43,7 +46,9 @@ class AnalyzerService:
         logger.info("Unloading models...")
         self.models.clear()
         import gc
+
         gc.collect()
         logger.info("Models unloaded successfully.")
+
 
 analyzer_service = AnalyzerService()

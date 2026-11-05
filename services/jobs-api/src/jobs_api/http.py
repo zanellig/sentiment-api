@@ -37,7 +37,9 @@ class JobCreated(BaseModel):
 
 @app.post("/jobs", status_code=202)
 def create_job(body: TextJob, tenant: Tenant) -> JobCreated:
-    job_id, state = lifecycle.create_text_job(tenant, body.texts, body.lang, body.analyses)
+    job_id, state = lifecycle.create_text_job(
+        tenant, body.texts, body.lang, body.analyses
+    )
     return JobCreated(job_id=job_id, state=state)
 
 

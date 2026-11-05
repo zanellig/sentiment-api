@@ -45,7 +45,9 @@ MESSAGES = [
         language="es",
         language_probability=0.97,
         segments=[AUDIO_SEGMENT],
-        speaker_embeddings=[SpeakerEmbedding(speaker="SPEAKER_00", vector=[0.1, -0.2], seconds=1.2)],
+        speaker_embeddings=[
+            SpeakerEmbedding(speaker="SPEAKER_00", vector=[0.1, -0.2], seconds=1.2)
+        ],
     ),
     AnalyzeRequested(
         **JOB,
@@ -67,7 +69,11 @@ MESSAGES = [
                     MultiLabelResult(
                         analysis=Analysis.HATE_SPEECH,
                         labels=[],
-                        probabilities={"hateful": 0.1, "targeted": 0.05, "aggressive": 0.02},
+                        probabilities={
+                            "hateful": 0.1,
+                            "targeted": 0.05,
+                            "aggressive": 0.02,
+                        },
                     ),
                     NerResult(
                         analysis=Analysis.NER,
@@ -75,7 +81,11 @@ MESSAGES = [
                         labels=["O", "O"],
                         entities=[],
                     ),
-                    PosResult(analysis=Analysis.POS, tokens=["hola", "che"], labels=["INTJ", "INTJ"]),
+                    PosResult(
+                        analysis=Analysis.POS,
+                        tokens=["hola", "che"],
+                        labels=["INTJ", "INTJ"],
+                    ),
                 ],
             }
         ],
@@ -99,7 +109,12 @@ MALFORMED = [
         AnalysisReady,
         {
             "segments": [
-                {"index": 0, "results": [{"analysis": "pos", "label": "POS", "probabilities": {}}]}
+                {
+                    "index": 0,
+                    "results": [
+                        {"analysis": "pos", "label": "POS", "probabilities": {}}
+                    ],
+                }
             ]
         },
     ),
@@ -107,7 +122,16 @@ MALFORMED = [
         AnalysisReady,
         {
             "segments": [
-                {"index": 0, "results": [{"analysis": "hate_speech", "label": "hateful", "probabilities": {}}]}
+                {
+                    "index": 0,
+                    "results": [
+                        {
+                            "analysis": "hate_speech",
+                            "label": "hateful",
+                            "probabilities": {},
+                        }
+                    ],
+                }
             ]
         },
     ),
@@ -115,7 +139,9 @@ MALFORMED = [
 ]
 
 
-@pytest.mark.parametrize("model, payload", MALFORMED, ids=lambda x: getattr(x, "__name__", ""))
+@pytest.mark.parametrize(
+    "model, payload", MALFORMED, ids=lambda x: getattr(x, "__name__", "")
+)
 def test_message_rejects_malformed_payload(model: type[BaseModel], payload: dict):
     with pytest.raises(ValidationError):
         model.model_validate({"job_id": str(uuid4()), "tenant_id": "acme", **payload})
@@ -124,7 +150,13 @@ def test_message_rejects_malformed_payload(model: type[BaseModel], payload: dict
 def test_message_rejects_a_job_id_that_is_not_a_uuid():
     with pytest.raises(ValidationError):
         StepFailed.model_validate(
-            {"job_id": "42", "tenant_id": "acme", "step": "analyze", "error": "x", "permanent": False}
+            {
+                "job_id": "42",
+                "tenant_id": "acme",
+                "step": "analyze",
+                "error": "x",
+                "permanent": False,
+            }
         )
 
 
@@ -143,7 +175,9 @@ import contracts
 
 def test_imports_without_torch():
     # The workspace venv has torch, so hide it from the import system in a fresh interpreter.
-    result = subprocess.run([sys.executable, "-c", BLOCK_TORCH], capture_output=True, text=True)
+    result = subprocess.run(
+        [sys.executable, "-c", BLOCK_TORCH], capture_output=True, text=True
+    )
     assert result.returncode == 0, result.stderr
 
 
@@ -156,7 +190,11 @@ def test_hate_speech_result_decodes_from_a_json_dict(labels: list[str]):
             {
                 "index": 0,
                 "results": [
-                    {"analysis": "hate_speech", "labels": labels, "probabilities": {"hateful": 0.9}}
+                    {
+                        "analysis": "hate_speech",
+                        "labels": labels,
+                        "probabilities": {"hateful": 0.9},
+                    }
                 ],
             }
         ],

@@ -46,7 +46,9 @@ def new_tenant(quota=None):
 
 
 def post_job(client, tenant):
-    response = client.post("/jobs", json={"texts": ["Me encanta!"], "lang": "es"}, headers=tenant)
+    response = client.post(
+        "/jobs", json={"texts": ["Me encanta!"], "lang": "es"}, headers=tenant
+    )
     assert response.status_code == 202
     return response.json()
 
@@ -67,20 +69,28 @@ def finish_all(client, model, jobs):
     """Let every held and queued Job through and wait for each `(tenant, job)` to be done."""
     model.finish(len(jobs))
     for tenant, job in jobs:
-        wait_until(lambda: state(client, tenant, job) == "done", f"Job {job['job_id']} done")
+        wait_until(
+            lambda: state(client, tenant, job) == "done", f"Job {job['job_id']} done"
+        )
 
 
 def test_job_over_quota_waits_until_one_finishes(stack, model):
     acme = new_tenant(quota=2)
     first, second, third = (post_job(stack, acme) for _ in range(3))
 
-    assert [j["state"] for j in (first, second, third)] == ["analyzing", "analyzing", "pending"]
+    assert [j["state"] for j in (first, second, third)] == [
+        "analyzing",
+        "analyzing",
+        "pending",
+    ]
     wait_until(lambda: model.started == 1, "the Analyzer to pick up the first Job")
     assert state(stack, acme, third) == "pending"
 
     model.finish()
     wait_until(lambda: state(stack, acme, first) == "done", "the first Job to finish")
-    wait_until(lambda: state(stack, acme, third) != "pending", "the third Job to be released")
+    wait_until(
+        lambda: state(stack, acme, third) != "pending", "the third Job to be released"
+    )
     assert state(stack, acme, third) == "analyzing"
 
     finish_all(stack, model, [(acme, second), (acme, third)])
@@ -92,7 +102,11 @@ def test_other_tenant_is_enqueued_while_one_is_at_quota(stack, model):
 
     other = post_job(stack, globex)
 
-    assert [j["state"] for j in (held, waiting, other)] == ["analyzing", "pending", "analyzing"]
+    assert [j["state"] for j in (held, waiting, other)] == [
+        "analyzing",
+        "pending",
+        "analyzing",
+    ]
     assert state(stack, globex, other) == "analyzing"
     finish_all(stack, model, [(acme, held), (globex, other), (acme, waiting)])
 
@@ -105,4 +119,6 @@ def test_tenant_without_a_row_gets_the_default_quota_of_4(stack, model):
 
     assert [j["state"] for j in jobs] == ["analyzing"] * 4 + ["pending"]
     assert [j["state"] for j in small_jobs] == ["analyzing", "pending"]
-    finish_all(stack, model, [(default, j) for j in jobs] + [(small, j) for j in small_jobs])
+    finish_all(
+        stack, model, [(default, j) for j in jobs] + [(small, j) for j in small_jobs]
+    )

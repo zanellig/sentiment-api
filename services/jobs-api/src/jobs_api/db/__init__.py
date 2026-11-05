@@ -6,6 +6,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 engine = create_engine(
-    os.environ.get("DATABASE_URL", "postgresql+psycopg://jobs:jobs@localhost:55432/jobs")
+    os.environ.get(
+        "DATABASE_URL", "postgresql+psycopg://jobs:jobs@localhost:55432/jobs"
+    )
 )
 Session = sessionmaker(engine)

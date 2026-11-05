@@ -23,17 +23,27 @@ def upgrade() -> None:
     # Every Job stored before this revision asked for sentiment alone.
     op.add_column(
         "jobs",
-        sa.Column("analyses", JSONB, nullable=False, server_default=sa.text("'[\"sentiment\"]'")),
+        sa.Column(
+            "analyses",
+            JSONB,
+            nullable=False,
+            server_default=sa.text("'[\"sentiment\"]'"),
+        ),
     )
     op.alter_column("jobs", "analyses", server_default=None)
     op.add_column(
         "jobs",
         sa.Column(
-            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.func.now(),
         ),
     )
     # The quota counts a Tenant's Jobs by state and releases its oldest pending one.
-    op.create_index("ix_jobs_tenant_state", "jobs", ["tenant_id", "state", "created_at"])
+    op.create_index(
+        "ix_jobs_tenant_state", "jobs", ["tenant_id", "state", "created_at"]
+    )
 
 
 def downgrade() -> None:
