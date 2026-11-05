@@ -8,5 +8,7 @@ COPY . .
 RUN uv sync --locked --package jobs-api --no-editable && rm -rf /root/.cache/uv
 ENV PATH="/app/.venv/bin:$PATH"
 
+USER nobody
+
 EXPOSE 8000
 CMD ["sh", "-c", "alembic -c services/jobs-api/alembic.ini upgrade head && exec uvicorn jobs_api.http:app --host 0.0.0.0 --port 8000"]
