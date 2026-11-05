@@ -4,9 +4,9 @@ from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
-from contracts import AnalysisReady, AnalyzeRequested, Segment
+from contracts import Analysis, AnalysisReady, AnalyzeRequested, Segment
 
-from analyzer import worker
+from analyzer import analyze, worker
 
 
 LABELS = {"Me encanta!": "POS", "Pésimo servicio.": "NEG", "Llegó el martes.": "NEU"}
@@ -49,3 +49,14 @@ def test_labels_every_segment_in_one_batch(monkeypatch, published):
     assert ready.job_id == request.job_id
     assert [[r.label for r in s.results] for s in ready.segments] == [["POS"], ["NEG"], ["NEU"]]
     assert ready.warnings == ["Analysis 'emotion' is not available for 'es'; skipped"]
+
+
+def test_rejects_several_labels_for_a_single_label_analysis(monkeypatch):
+    class MultiLabel:
+        def predict(self, texts):
+            return [SimpleNamespace(output=["hateful"], probas={"hateful": 1.0}) for _ in texts]
+
+    monkeypatch.setattr("analyzer.models.load", lambda analysis, lang: MultiLabel())
+
+    with pytest.raises(TypeError, match="several labels"):
+        analyze([Segment(index=0, text="hola")], [Analysis.SENTIMENT], "es")
