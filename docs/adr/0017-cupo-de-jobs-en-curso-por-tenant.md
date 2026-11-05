@@ -1,5 +1,5 @@
 ---
-status: el cupo por plan es reemplazado por ADR-0025
+status: el cupo por plan es reemplazado por ADR-0026
 ---
 
 # Cupo de Jobs en curso por Tenant, aplicado por el Jobs API

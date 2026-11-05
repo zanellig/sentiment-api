@@ -5,5 +5,5 @@ Cada Tenant guarda su propio cupo de Jobs en curso (ADR-0017) y su propio límit
 ## Consequences
 
 - La tabla `tenants` suma `rate_limit` (requests por minuto) junto a `quota`. El valor por defecto sigue siendo 600 por minuto hasta que haya números reales.
-- Cambiar el límite de tasa de un Tenant actualiza su fila y su consumer en APISIX (ADR-0024).
+- Cambiar el límite de tasa de un Tenant actualiza su fila y su consumer en APISIX (ADR-0025).
 - Si más adelante se necesita saber qué plan tiene un Tenant (por ejemplo, para facturar), se suma una columna con el nombre del plan. Los valores siguen copiados en el Tenant, así que cambiar una plantilla no cambia a los Tenants que ya la usan.

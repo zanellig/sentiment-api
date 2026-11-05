@@ -1,5 +1,5 @@
 ---
-status: el modo standalone es reemplazado por ADR-0024; el plan, por ADR-0025
+status: el modo standalone es reemplazado por ADR-0025; el plan, por ADR-0026
 ---
 
 # Apache APISIX como gateway, con el registro de Tenants en el Jobs API
