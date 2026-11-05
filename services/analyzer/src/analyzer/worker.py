@@ -1,7 +1,8 @@
 """Celery transport: consume `analyze.<lang>`, publish `AnalysisReady` on `results` (ADR-0014).
 
-Run one deployment per language:
-`ANALYZER_LANGUAGE=es celery -A analyzer.worker worker -Q analyze.es`.
+Run one deployment per language (ADR-0007), on the device it should use. CPU deployments hide
+the GPU, which pysentimiento's Trainer otherwise touches while loading:
+`CUDA_VISIBLE_DEVICES= ANALYZER_LANG=es ANALYZER_DEVICE=cpu celery -A analyzer.worker worker -Q analyze.es`.
 A step that keeps failing, or fails permanently, publishes `StepFailed` instead (ADR-0010).
 """
 
@@ -13,15 +14,13 @@ from celery import Celery, Task
 from contracts import AnalysisReady, AnalyzeRequested, Step, StepFailed
 from pydantic import BaseModel, ValidationError
 
-from analyzer import analyze
+from analyzer import analyze, models
 
 STORE_RESULT = "jobs_api.store_result"
 # Stands in for a missing or invalid tenant_id, which is for logging only.
 UNKNOWN_TENANT = "unknown"
 MAX_RETRIES = 3
 BACKOFF_SECONDS = 2.0  # doubles on each retry
-# The language this deployment serves (ADR-0007); unset serves any.
-LANGUAGE = os.environ.get("ANALYZER_LANGUAGE")
 
 log = logging.getLogger(__name__)
 
@@ -43,7 +42,7 @@ def parse(message: dict[str, Any]) -> AnalyzeRequested:
         request = AnalyzeRequested.model_validate(message)
     except ValidationError as error:
         raise PermanentError("Malformed analysis request") from error
-    if LANGUAGE and request.language != LANGUAGE:
+    if request.language != models.LANGUAGE:
         raise PermanentError(f"Language '{request.language}' is not served by this Analyzer")
     return request
 

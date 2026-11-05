@@ -143,8 +143,9 @@ class PosResult(_Model):
 class Entity(_Model):
     type: str = Field(description="Entity type, e.g. PER, ORG, LOC")
     text: str
-    start: int = Field(ge=0, description="Start character offset in the Segment text")
-    end: int = Field(ge=0, description="End character offset in the Segment text")
+    # Unknown when pysentimiento's preprocessing rewrote the text it labelled.
+    start: int | None = Field(None, ge=0, description="Start character offset in the Segment text")
+    end: int | None = Field(None, ge=0, description="End character offset in the Segment text")
 
 
 class NerResult(_Model):
