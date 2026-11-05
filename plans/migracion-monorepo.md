@@ -12,7 +12,7 @@ Regla para todas las fases: los modelos de ML no se descargan en la máquina loc
 
 ```text
 services/
-├── api/            # Jobs API: HTTP, Postgres + pgvector, orquestación, consumidor de `results`
+├── jobs-api/       # Jobs API: HTTP, Postgres + pgvector, orquestación, consumidor de `results`
 ├── transcriber/    # WhisperX + diarización (imagen GPU)
 └── analyzer/       # pysentimiento, un deployment por idioma (imagen CPU)
 packages/
