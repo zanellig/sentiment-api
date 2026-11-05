@@ -7,7 +7,7 @@ license = "MIT"
 dependencies = ["analyzer", "contracts", "jobs-api"]
 
 [dependency-groups]
-dev = ["pytest", "httpx", "pyright==1.1.414", "celery-types==0.26.0"]
+dev = ["pytest", "httpx", "basedpyright==1.40.2", "celery-types==0.26.0"]
 
 [tool.uv.workspace]
 members = ["services/*", "packages/*"]
@@ -33,7 +33,7 @@ testpaths = [
 # main.py sits beside app/ and is not part of the installed package
 pythonpath = ["services/analyzer"]
 
-[tool.pyright]
+[tool.basedpyright]
 include = [
     "packages/contracts/src",
     "services/analyzer/src",
