@@ -5,4 +5,5 @@ Cada idioma tiene su propia cola (`analyze.es`, `analyze.en`, `analyze.it`, `ana
 ## Consequences
 
 - No todas las Analysis existen en todos los idiomas: `ner` y `pos` solo existen en `es`/`en`, y `targeted_sentiment` solo en `es`. Si se pide una que no existe, se devuelve un warning, no un error.
+- En `en`, pysentimiento sirve `ner` y `pos` con los mismos modelos robertuito que en `es`, entrenados con textos que mezclan español e inglés. Nadie midió todavía cómo andan con llamadas en inglés.
 - El `lang` del request deja de ser ignorado: el idioma es del Job, no del deployment.
