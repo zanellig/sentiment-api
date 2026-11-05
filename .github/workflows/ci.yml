@@ -20,7 +20,8 @@ jobs:
           enable-cache: true
       - run: docker compose -f deploy/compose.yaml --profile gateway up -d --wait --build
       - run: uv sync --locked
-      - run: uv run pyright
+      - run: uv run ruff format --check
+      - run: uv run basedpyright
       - run: uv run pytest
       - if: always()
         run: docker compose -f deploy/compose.yaml --profile gateway down -v

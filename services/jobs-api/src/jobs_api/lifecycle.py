@@ -7,7 +7,14 @@ from typing import Literal
 from uuid import UUID
 
 import contracts
-from contracts import Analysis, AnalysisReady, AnalysisResult, AnalyzeRequested, Step, StepFailed
+from contracts import (
+    Analysis,
+    AnalysisReady,
+    AnalysisResult,
+    AnalyzeRequested,
+    Step,
+    StepFailed,
+)
 from pydantic import BaseModel
 from sqlalchemy import func, select, update
 from sqlalchemy.dialects.postgresql import insert
@@ -98,7 +105,9 @@ class JobView(BaseModel):
 def read_job(tenant: str, job_id: UUID) -> JobView | None:
     """The Job with its per-Segment results, or None when this Tenant has no such Job."""
     with Session() as session:
-        job = session.scalar(select(Job).where(Job.id == job_id, Job.tenant_id == tenant))
+        job = session.scalar(
+            select(Job).where(Job.id == job_id, Job.tenant_id == tenant)
+        )
         if job is None:
             return None
         key = (job_id, Step.ANALYZE.value)
@@ -111,7 +120,9 @@ def read_job(tenant: str, job_id: UUID) -> JobView | None:
             state=job.state,
             language=job.language,
             segments=[
-                SegmentView(index=s.index, text=s.text, results=results.get(s.index, []))
+                SegmentView(
+                    index=s.index, text=s.text, results=results.get(s.index, [])
+                )
                 for s in job.segments
             ],
             warnings=analysis.warnings if analysis else [],

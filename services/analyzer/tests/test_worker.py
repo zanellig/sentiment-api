@@ -25,7 +25,10 @@ class FakeSequence:
     def predict(self, texts):
         self.calls.append(texts)
         labels = SEQUENCE[self.analysis]
-        return [SimpleNamespace(output=labels[TEXTS.index(t)], probas={"x": 0.5}) for t in texts]
+        return [
+            SimpleNamespace(output=labels[TEXTS.index(t)], probas={"x": 0.5})
+            for t in texts
+        ]
 
 
 class FakeTokens:
@@ -42,7 +45,9 @@ class FakeTokens:
                 SimpleNamespace(
                     tokens=tokens,
                     labels=[("B-LOC" if t == "Madrid." else "O") for t in tokens],
-                    entities=entities if ner else ([] if self.analysis is Analysis.NER else None),
+                    entities=entities
+                    if ner
+                    else ([] if self.analysis is Analysis.NER else None),
                 )
             )
         return out
@@ -51,15 +56,21 @@ class FakeTokens:
 @pytest.fixture
 def fakes(monkeypatch):
     sequence = {a: FakeSequence(a) for a in SEQUENCE}
-    monkeypatch.setattr("analyzer.models.load", lambda analysis, lang: sequence[analysis])
-    monkeypatch.setattr("analyzer.models.load_tokens", lambda analysis, lang: FakeTokens(analysis))
+    monkeypatch.setattr(
+        "analyzer.models.load", lambda analysis, lang: sequence[analysis]
+    )
+    monkeypatch.setattr(
+        "analyzer.models.load_tokens", lambda analysis, lang: FakeTokens(analysis)
+    )
     return sequence
 
 
 @pytest.fixture
 def published(monkeypatch):
     sent = []
-    monkeypatch.setattr(worker.app, "send_task", lambda name, args: sent.append((name, args)))
+    monkeypatch.setattr(
+        worker.app, "send_task", lambda name, args: sent.append((name, args))
+    )
     return sent
 
 
@@ -104,9 +115,13 @@ def test_every_analysis_labels_every_segment_in_one_batch(fakes, published):
 def test_analysis_missing_in_the_language_is_a_warning(fakes, published, monkeypatch):
     monkeypatch.setattr("analyzer.models.LANGUAGE", "it")
 
-    ready = run(request("it", [Analysis.SENTIMENT, Analysis.NER, Analysis.POS]), published)
+    ready = run(
+        request("it", [Analysis.SENTIMENT, Analysis.NER, Analysis.POS]), published
+    )
 
-    assert [[r.analysis for r in s.results] for s in ready.segments] == [["sentiment"]] * 3
+    assert [[r.analysis for r in s.results] for s in ready.segments] == [
+        ["sentiment"]
+    ] * 3
     assert ready.warnings == [
         "Analysis 'ner' is not available for 'it'; skipped",
         "Analysis 'pos' is not available for 'it'; skipped",
@@ -129,7 +144,10 @@ def test_rejects_segments_in_another_language(fakes):
 def test_rejects_several_labels_for_a_single_label_analysis(monkeypatch):
     class MultiLabel:
         def predict(self, texts):
-            return [SimpleNamespace(output=["hateful"], probas={"hateful": 1.0}) for _ in texts]
+            return [
+                SimpleNamespace(output=["hateful"], probas={"hateful": 1.0})
+                for _ in texts
+            ]
 
     monkeypatch.setattr("analyzer.models.load", lambda analysis, lang: MultiLabel())
 
@@ -160,12 +178,16 @@ def countdowns(monkeypatch):
     return seen
 
 
-def test_publishes_step_failed_after_exhausting_retries(monkeypatch, published, countdowns):
+def test_publishes_step_failed_after_exhausting_retries(
+    monkeypatch, published, countdowns
+):
     model = Broken()
     monkeypatch.setattr("analyzer.models.load", lambda analysis, lang: model)
     message = request()
 
-    worker.analyze_job.apply(args=[message])  # eager: retries run inline, without the backoff
+    worker.analyze_job.apply(
+        args=[message]
+    )  # eager: retries run inline, without the backoff
 
     assert model.calls == 1 + worker.MAX_RETRIES
     assert countdowns == [2.0, 4.0, 8.0]  # BACKOFF_SECONDS, doubling

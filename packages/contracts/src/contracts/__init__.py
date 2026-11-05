@@ -60,7 +60,9 @@ class Segment(_Model):
     text: str
     start: Seconds | None = None
     end: Seconds | None = None
-    speaker: str | None = Field(default=None, description="Speaker label, e.g. SPEAKER_00")
+    speaker: str | None = Field(
+        default=None, description="Speaker label, e.g. SPEAKER_00"
+    )
     words: list[Word] = []
 
 
@@ -69,7 +71,9 @@ class SpeakerEmbedding(_Model):
 
     speaker: str
     vector: list[float] = Field(min_length=1)
-    seconds: Seconds = Field(description="Seconds of speech by this Speaker in the Transcript")
+    seconds: Seconds = Field(
+        description="Seconds of speech by this Speaker in the Transcript"
+    )
 
 
 class _Message(_Model):
@@ -79,7 +83,9 @@ class _Message(_Model):
 
 class TranscribeOptions(_Model):
     diarize: bool = True
-    language: str | None = Field(default=None, description="Language hint; detected when absent")
+    language: str | None = Field(
+        default=None, description="Language hint; detected when absent"
+    )
 
 
 class TranscribeRequested(_Message):
@@ -144,8 +150,12 @@ class Entity(_Model):
     type: str = Field(description="Entity type, e.g. PER, ORG, LOC")
     text: str
     # Unknown when pysentimiento's preprocessing rewrote the text it labelled.
-    start: int | None = Field(None, ge=0, description="Start character offset in the Segment text")
-    end: int | None = Field(None, ge=0, description="End character offset in the Segment text")
+    start: int | None = Field(
+        None, ge=0, description="Start character offset in the Segment text"
+    )
+    end: int | None = Field(
+        None, ge=0, description="End character offset in the Segment text"
+    )
 
 
 class NerResult(_Model):
@@ -158,7 +168,8 @@ class NerResult(_Model):
 
 
 AnalysisResult = Annotated[
-    SequenceResult | MultiLabelResult | PosResult | NerResult, Field(discriminator="analysis")
+    SequenceResult | MultiLabelResult | PosResult | NerResult,
+    Field(discriminator="analysis"),
 ]
 
 
@@ -175,7 +186,8 @@ class AnalysisReady(_Message):
     step: Literal[Step.ANALYZE] = Step.ANALYZE
     segments: list[SegmentAnalyses]
     warnings: list[str] = Field(
-        default=[], description="E.g. an Analysis that does not exist for the language (ADR-0007)"
+        default=[],
+        description="E.g. an Analysis that does not exist for the language (ADR-0007)",
     )
 
 

@@ -21,7 +21,9 @@ def analyze(
     """Return the results per Segment and the warnings for Analyses that were skipped."""
     if lang != models.LANGUAGE:
         raise ValueError(f"This deployment analyses '{models.LANGUAGE}', not '{lang}'")
-    results: dict[int, list[AnalysisResult]] = {segment.index: [] for segment in segments}
+    results: dict[int, list[AnalysisResult]] = {
+        segment.index: [] for segment in segments
+    }
     warnings: list[str] = []
     texts = [segment.text for segment in segments]
     for analysis in analyses:
@@ -33,9 +35,13 @@ def analyze(
             )
             continue
         if not models.supports(analysis, lang):
-            warnings.append(f"Analysis '{analysis}' is not available for '{lang}'; skipped")
+            warnings.append(
+                f"Analysis '{analysis}' is not available for '{lang}'; skipped"
+            )
             continue
-        for segment, result in zip(segments, _label(analysis, texts, lang), strict=True):
+        for segment, result in zip(
+            segments, _label(analysis, texts, lang), strict=True
+        ):
             results[segment.index].append(result)
     return [SegmentAnalyses(index=i, results=r) for i, r in results.items()], warnings
 
@@ -64,7 +70,9 @@ def _label(analysis: Analysis, texts: list[str], lang: str) -> list[AnalysisResu
                 if not isinstance(p.output, list):
                     raise TypeError(f"{analysis} returned a single label: {p.output}")
                 results.append(
-                    MultiLabelResult(analysis=analysis, labels=p.output, probabilities=p.probas)
+                    MultiLabelResult(
+                        analysis=analysis, labels=p.output, probabilities=p.probas
+                    )
                 )
             return results
         case _:
@@ -73,6 +81,8 @@ def _label(analysis: Analysis, texts: list[str], lang: str) -> list[AnalysisResu
                 if not isinstance(p.output, str):
                     raise TypeError(f"{analysis} returned several labels: {p.output}")
                 results.append(
-                    SequenceResult(analysis=analysis, label=p.output, probabilities=p.probas)
+                    SequenceResult(
+                        analysis=analysis, label=p.output, probabilities=p.probas
+                    )
                 )
             return results

@@ -36,7 +36,9 @@ def model(monkeypatch):
 
 
 def run_job(client, texts=("Me encanta!",)):
-    response = client.post("/jobs", json={"texts": list(texts), "lang": "es"}, headers=ACME)
+    response = client.post(
+        "/jobs", json={"texts": list(texts), "lang": "es"}, headers=ACME
+    )
     assert response.status_code == 202
     url = f"/jobs/{response.json()['job_id']}"
     for _ in range(100):
@@ -50,14 +52,18 @@ def run_job(client, texts=("Me encanta!",)):
 def publish_result(message):
     from jobs_api.broker import app
 
-    app.send_task("jobs_api.store_result", args=[message.model_dump(mode="json")], queue="results")
+    app.send_task(
+        "jobs_api.store_result", args=[message.model_dump(mode="json")], queue="results"
+    )
 
 
 def test_duplicate_results_change_nothing(stack, model):
     model()
     job = run_job(stack)
     job_id = UUID(job["job_id"])
-    relabelled = SequenceResult(analysis="sentiment", label="NEG", probabilities={"NEG": 1.0})
+    relabelled = SequenceResult(
+        analysis="sentiment", label="NEG", probabilities={"NEG": 1.0}
+    )
     publish_result(
         AnalysisReady(
             job_id=job_id,
@@ -66,7 +72,13 @@ def test_duplicate_results_change_nothing(stack, model):
         )
     )
     publish_result(
-        StepFailed(job_id=job_id, tenant_id="acme", step="analyze", error="late", permanent=False)
+        StepFailed(
+            job_id=job_id,
+            tenant_id="acme",
+            step="analyze",
+            error="late",
+            permanent=False,
+        )
     )
     # `results` is consumed in order by one solo worker: once a later Job is done, so are both.
     run_job(stack)
@@ -82,9 +94,17 @@ def test_results_after_a_step_failed_change_nothing(stack, model, monkeypatch):
     job = run_job(stack)
     job_id = UUID(job["job_id"])
     publish_result(
-        StepFailed(job_id=job_id, tenant_id="acme", step="analyze", error="late", permanent=False)
+        StepFailed(
+            job_id=job_id,
+            tenant_id="acme",
+            step="analyze",
+            error="late",
+            permanent=False,
+        )
     )
-    labelled = SequenceResult(analysis="sentiment", label="POS", probabilities={"POS": 1.0})
+    labelled = SequenceResult(
+        analysis="sentiment", label="POS", probabilities={"POS": 1.0}
+    )
     publish_result(
         AnalysisReady(
             job_id=job_id,

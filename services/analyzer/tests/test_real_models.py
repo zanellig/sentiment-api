@@ -12,7 +12,8 @@ import pytest
 from contracts import Analysis, Segment
 
 pytestmark = pytest.mark.skipif(
-    not os.environ.get("RUN_REAL_MODELS"), reason="downloads model weights; set RUN_REAL_MODELS=1"
+    not os.environ.get("RUN_REAL_MODELS"),
+    reason="downloads model weights; set RUN_REAL_MODELS=1",
 )
 
 TEXTS = {
@@ -60,8 +61,13 @@ def test_same_labels_as_legacy_analyze(lang, monkeypatch):
         legacy = _run_analysis(text, config)
         ours = {r.analysis: r for r in segment.results}
         for analysis in (Analysis.SENTIMENT, Analysis.EMOTION, Analysis.IRONY):
-            assert ours[analysis].label == legacy[analysis.value]["label"], (text, analysis)
+            assert ours[analysis].label == legacy[analysis.value]["label"], (
+                text,
+                analysis,
+            )
         assert ours[Analysis.HATE_SPEECH].labels == legacy["hate_speech"]["label"], text
         assert ours[Analysis.POS].labels == legacy["pos"]["labels"], text
         assert ours[Analysis.NER].labels == legacy["ner"]["labels"], text
-        assert [e.model_dump() for e in ours[Analysis.NER].entities] == legacy["ner"]["entities"]
+        assert [e.model_dump() for e in ours[Analysis.NER].entities] == legacy["ner"][
+            "entities"
+        ]

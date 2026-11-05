@@ -85,7 +85,9 @@ class Sequence:
 
     def __init__(self, analyzer: _SequenceAnalyzer, device: torch.device):
         self._model = analyzer.model
-        torch.nn.Module.to(self._model, device).eval()  # PreTrainedModel.to's stub rejects a device
+        torch.nn.Module.to(
+            self._model, device
+        ).eval()  # PreTrainedModel.to's stub rejects a device
         self._tokenizer = analyzer.tokenizer
         self._preprocessing_args = analyzer.preprocessing_args
         self._device = device
@@ -135,13 +137,18 @@ class Tokens:
         self._max_length = cast(int, analyzer.tokenizer.model_max_length)  # pyright: ignore[reportUnknownMemberType]
 
     def predict(self, texts: list[str]) -> list[TokenPrediction]:
-        spans = [self._split(text, [m.span() for m in re.finditer(r"\S+", text)]) for text in texts]
+        spans = [
+            self._split(text, [m.span() for m in re.finditer(r"\S+", text)])
+            for text in texts
+        ]
         chunks = [text[start:end] for text, s in zip(texts, spans) for start, end in s]
         predictions: list[TokenPrediction] = []
         with torch.inference_mode():
             for start in range(0, len(chunks), BATCH_SIZE):
                 outputs = self._analyzer.predict(chunks[start : start + BATCH_SIZE])
-                predictions += outputs if isinstance(outputs, list) else [outputs]  # one text gives no list
+                predictions += (
+                    outputs if isinstance(outputs, list) else [outputs]
+                )  # one text gives no list
         joined: list[TokenPrediction] = []
         remaining = iter(predictions)
         for text, s in zip(texts, spans):
@@ -179,17 +186,28 @@ class Tokens:
     def _fits(self, chunk: str) -> bool:
         """Whether pysentimiento would see every subword token of `chunk`, tokenized as it does."""
         analyzer = self._analyzer
-        words = [t.text for t in analyzer.spacy_tokenizer(_preprocess(chunk, **analyzer.preprocessing_args))]
+        words = [
+            t.text
+            for t in analyzer.spacy_tokenizer(
+                _preprocess(chunk, **analyzer.preprocessing_args)
+            )
+        ]
         encoding = analyzer.tokenizer(words, is_split_into_words=True)
         return len(cast(list[int], encoding["input_ids"])) <= self._max_length
 
-    def _in_text(self, entity: dict[str, Any], text: str, start: int, end: int) -> dict[str, Any]:
+    def _in_text(
+        self, entity: dict[str, Any], text: str, start: int, end: int
+    ) -> dict[str, Any]:
         """pysentimiento's offsets are into the preprocessed chunk; they hold in `text` only when
         preprocessing changed nothing."""
         chunk = text[start:end]
         if _preprocess(chunk, **self._analyzer.preprocessing_args) != chunk:
             return {**entity, "start": None, "end": None}
-        return {**entity, "start": start + entity["start"], "end": start + entity["end"]}
+        return {
+            **entity,
+            "start": start + entity["start"],
+            "end": start + entity["end"],
+        }
 
 
 def supports(analysis: Analysis, lang: str) -> bool:

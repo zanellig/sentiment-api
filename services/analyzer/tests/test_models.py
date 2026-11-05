@@ -6,7 +6,10 @@ looks like a GPU host: anything that picked the GPU on its own would fail here.
 
 import pytest
 import torch
-from pysentimiento.analyzer import AnalyzerForSequenceClassification, AnalyzerForTokenClassification
+from pysentimiento.analyzer import (
+    AnalyzerForSequenceClassification,
+    AnalyzerForTokenClassification,
+)
 from tokenizers import Tokenizer
 from tokenizers.models import WordLevel
 from tokenizers.pre_tokenizers import Whitespace
@@ -28,7 +31,9 @@ def tokenizer():
     vocab = {w: i for i, w in enumerate(["[PAD]", "[UNK]", *sorted(words)])}
     backend = Tokenizer(WordLevel(vocab, unk_token="[UNK]"))
     backend.pre_tokenizer = Whitespace()
-    return PreTrainedTokenizerFast(tokenizer_object=backend, unk_token="[UNK]", pad_token="[PAD]")
+    return PreTrainedTokenizerFast(
+        tokenizer_object=backend, unk_token="[UNK]", pad_token="[PAD]"
+    )
 
 
 def config(labels, **kwargs):
@@ -50,7 +55,9 @@ def record_devices(model):
     seen = set()
 
     def hook(module, args, kwargs):
-        seen.update(t.device for t in [*args, *kwargs.values()] if isinstance(t, torch.Tensor))
+        seen.update(
+            t.device for t in [*args, *kwargs.values()] if isinstance(t, torch.Tensor)
+        )
         seen.update(p.device for p in module.parameters())
 
     model.register_forward_pre_hook(hook, with_kwargs=True)
@@ -69,7 +76,9 @@ def gpu_host(monkeypatch, tmp_path):
 def test_sequence_forward_pass_matches_pysentimiento_on_the_configured_device(
     gpu_host, problem_type
 ):
-    model = BertForSequenceClassification(config(["NEG", "NEU", "POS"], problem_type=problem_type))
+    model = BertForSequenceClassification(
+        config(["NEG", "NEU", "POS"], problem_type=problem_type)
+    )
     reference = AnalyzerForSequenceClassification(
         model.eval(), tokenizer(), "sentiment", {"lang": "es"}
     )
@@ -87,7 +96,9 @@ def test_sequence_forward_pass_matches_pysentimiento_on_the_configured_device(
 
 def test_sequence_batches_long_jobs(gpu_host, monkeypatch):
     model = BertForSequenceClassification(config(["NEG", "POS"])).eval()
-    reference = AnalyzerForSequenceClassification(model, tokenizer(), "sentiment", {"lang": "es"})
+    reference = AnalyzerForSequenceClassification(
+        model, tokenizer(), "sentiment", {"lang": "es"}
+    )
     monkeypatch.setattr("analyzer.models.BATCH_SIZE", 3)
     calls = []
     model.register_forward_pre_hook(
@@ -102,7 +113,9 @@ def test_sequence_batches_long_jobs(gpu_host, monkeypatch):
 @pytest.mark.parametrize("task, chunk", [("ner", True), ("pos", False)])
 def test_token_model_runs_on_the_configured_device(gpu_host, task, chunk):
     model = BertForTokenClassification(config(["O", "B-PER", "I-PER", "B-LOC"])).eval()
-    analyzer = AnalyzerForTokenClassification(model, tokenizer(), task, lang="es", chunk=chunk)
+    analyzer = AnalyzerForTokenClassification(
+        model, tokenizer(), task, lang="es", chunk=chunk
+    )
     seen = record_devices(model)
     gpu_host()
 
@@ -125,10 +138,14 @@ def every_token_a_person(task, max_length, chunk):
     vocab = {w: i for i, w in enumerate(["[PAD]", "[UNK]", *sorted(words)])}
     backend = Tokenizer(WordLevel(vocab, unk_token="[UNK]"))
     backend.pre_tokenizer = Whitespace()
-    small = PreTrainedTokenizerFast(tokenizer_object=backend, unk_token="[UNK]", pad_token="[PAD]")
+    small = PreTrainedTokenizerFast(
+        tokenizer_object=backend, unk_token="[UNK]", pad_token="[PAD]"
+    )
     model = BertForTokenClassification(config(["O", "B-PER", "I-PER", "B-LOC"])).eval()
     model.classifier.bias.data[1] = 100.0
-    analyzer = AnalyzerForTokenClassification(model, small, task, lang="es", chunk=chunk)
+    analyzer = AnalyzerForTokenClassification(
+        model, small, task, lang="es", chunk=chunk
+    )
     small.model_max_length = max_length  # pysentimiento sets 128 in its constructor
     return analyzer
 
@@ -140,7 +157,9 @@ def test_texts_past_the_token_limit_get_every_word_labelled(gpu_host, task, chun
     [prediction] = Tokens(analyzer, CPU).predict([LONG])
 
     assert prediction.tokens == LONG.split()
-    assert None not in prediction.labels and len(prediction.labels) == len(prediction.tokens)
+    assert None not in prediction.labels and len(prediction.labels) == len(
+        prediction.tokens
+    )
 
 
 def test_entity_offsets_point_into_the_segment_text(gpu_host):
