@@ -1,0 +1,14 @@
+.git
+.venv
+.worktrees
+**/__pycache__
+**/.pytest_cache
+# Gitignored local files that must not end up in an image.
+**/.env
+**/.env.*
+!**/.env.example
+**/.envrc
+**/*.log
+**/.mypy_cache
+**/.ruff_cache
+**/.coverage
