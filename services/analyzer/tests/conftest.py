@@ -1,8 +1,10 @@
 import os
 
-# An accidental real model load must fail instead of downloading weights.
-os.environ["HF_HUB_OFFLINE"] = "1"
-os.environ["TRANSFORMERS_OFFLINE"] = "1"
+# An accidental real model load must fail instead of downloading weights, except in the
+# opt-in real-model run (test_real_models.py), which only happens off the local machine.
+if not os.environ.get("RUN_REAL_MODELS"):
+    os.environ["HF_HUB_OFFLINE"] = "1"
+    os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
 from types import SimpleNamespace
 

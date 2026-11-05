@@ -8,17 +8,61 @@ from contracts import Analysis, AnalysisReady, AnalyzeRequested, Segment, StepFa
 
 from analyzer import analyze, worker
 
+TEXTS = ["Me encanta!", "Pésimo servicio.", "Pablo vive en Madrid."]
+SEQUENCE = {
+    Analysis.SENTIMENT: ["POS", "NEG", "NEU"],
+    Analysis.EMOTION: ["joy", "anger", "others"],
+    Analysis.IRONY: ["not ironic", "ironic", "not ironic"],
+    Analysis.HATE_SPEECH: [[], ["aggressive"], []],
+}
 
-LABELS = {"Me encanta!": "POS", "Pésimo servicio.": "NEG", "Llegó el martes.": "NEU"}
 
-
-class FakeSentiment:
-    def __init__(self):
+class FakeSequence:
+    def __init__(self, analysis):
+        self.analysis = analysis
         self.calls = []
 
     def predict(self, texts):
         self.calls.append(texts)
-        return [SimpleNamespace(output=LABELS[t], probas={"POS": 1.0}) for t in texts]
+        labels = SEQUENCE[self.analysis]
+        return [
+            SimpleNamespace(output=labels[TEXTS.index(t)], probas={"x": 0.5})
+            for t in texts
+        ]
+
+
+class FakeTokens:
+    def __init__(self, analysis):
+        self.analysis = analysis
+
+    def predict(self, texts):
+        out = []
+        for text in texts:
+            tokens = text.split()
+            entities = [{"type": "LOC", "text": "Madrid.", "start": 14, "end": 21}]
+            ner = self.analysis is Analysis.NER and "Madrid." in tokens
+            out.append(
+                SimpleNamespace(
+                    tokens=tokens,
+                    labels=[("B-LOC" if t == "Madrid." else "O") for t in tokens],
+                    entities=entities
+                    if ner
+                    else ([] if self.analysis is Analysis.NER else None),
+                )
+            )
+        return out
+
+
+@pytest.fixture
+def fakes(monkeypatch):
+    sequence = {a: FakeSequence(a) for a in SEQUENCE}
+    monkeypatch.setattr(
+        "analyzer.models.load", lambda analysis, lang: sequence[analysis]
+    )
+    monkeypatch.setattr(
+        "analyzer.models.load_tokens", lambda analysis, lang: FakeTokens(analysis)
+    )
+    return sequence
 
 
 @pytest.fixture
@@ -30,31 +74,71 @@ def published(monkeypatch):
     return sent
 
 
-def test_labels_every_segment_in_one_batch(monkeypatch, published):
-    model = FakeSentiment()
-    monkeypatch.setattr("analyzer.models.load", lambda analysis, lang: model)
-    texts = list(LABELS)
-    request = AnalyzeRequested(
+def request(language="es", analyses=tuple(Analysis)):
+    return AnalyzeRequested(
         job_id=uuid4(),
         tenant_id="acme",
-        language="es",
-        analyses=["sentiment", "emotion"],
-        segments=[Segment(index=i, text=t) for i, t in enumerate(texts)],
+        language=language,
+        analyses=list(analyses),
+        segments=[Segment(index=i, text=t) for i, t in enumerate(TEXTS)],
+    ).model_dump(mode="json")
+
+
+def run(message, published):
+    worker.analyze_job(message)
+    [(name, [ready])] = published[-1:]
+    assert name == "jobs_api.store_result"
+    return AnalysisReady.model_validate(ready)
+
+
+def test_every_analysis_labels_every_segment_in_one_batch(fakes, published):
+    message = request()
+
+    ready = run(message, published)
+
+    assert str(ready.job_id) == message["job_id"]
+    by_segment = [{r.analysis: r for r in s.results} for s in ready.segments]
+    for i, results in enumerate(by_segment):
+        assert results[Analysis.SENTIMENT].label == SEQUENCE[Analysis.SENTIMENT][i]
+        assert results[Analysis.EMOTION].label == SEQUENCE[Analysis.EMOTION][i]
+        assert results[Analysis.IRONY].label == SEQUENCE[Analysis.IRONY][i]
+        assert results[Analysis.HATE_SPEECH].labels == SEQUENCE[Analysis.HATE_SPEECH][i]
+        assert results[Analysis.POS].tokens == TEXTS[i].split()
+    assert [e.type for e in by_segment[2][Analysis.NER].entities] == ["LOC"]
+    assert by_segment[2][Analysis.NER].labels == ["O", "O", "O", "B-LOC"]
+    assert all(model.calls == [TEXTS] for model in fakes.values())
+    assert ready.warnings == [
+        "Analysis 'targeted_sentiment' needs a target, which Jobs do not carry; skipped"
+    ]
+
+
+def test_analysis_missing_in_the_language_is_a_warning(fakes, published, monkeypatch):
+    monkeypatch.setattr("analyzer.models.LANGUAGE", "it")
+
+    ready = run(
+        request("it", [Analysis.SENTIMENT, Analysis.NER, Analysis.POS]), published
     )
 
-    worker.analyze_job(request.model_dump(mode="json"))
-
-    assert model.calls == [texts]
-    [(name, [message])] = published
-    assert name == "jobs_api.store_result"
-    ready = AnalysisReady.model_validate(message)
-    assert ready.job_id == request.job_id
-    assert [[r.label for r in s.results] for s in ready.segments] == [
-        ["POS"],
-        ["NEG"],
-        ["NEU"],
+    assert [[r.analysis for r in s.results] for s in ready.segments] == [
+        ["sentiment"]
+    ] * 3
+    assert ready.warnings == [
+        "Analysis 'ner' is not available for 'it'; skipped",
+        "Analysis 'pos' is not available for 'it'; skipped",
     ]
-    assert ready.warnings == ["Analysis 'emotion' is not available for 'es'; skipped"]
+
+
+def test_repeated_message_gives_the_same_result(fakes, published):
+    message = request()
+
+    first, second = run(message, published), run(message, published)
+
+    assert first == second
+
+
+def test_rejects_segments_in_another_language(fakes):
+    with pytest.raises(ValueError, match="analyses 'es', not 'en'"):
+        analyze([Segment(index=0, text=TEXTS[0])], [Analysis.SENTIMENT], "en")
 
 
 def test_rejects_several_labels_for_a_single_label_analysis(monkeypatch):
@@ -69,16 +153,6 @@ def test_rejects_several_labels_for_a_single_label_analysis(monkeypatch):
 
     with pytest.raises(TypeError, match="several labels"):
         analyze([Segment(index=0, text="hola")], [Analysis.SENTIMENT], "es")
-
-
-def request(language="es"):
-    return AnalyzeRequested(
-        job_id=uuid4(),
-        tenant_id="acme",
-        language=language,
-        analyses=["sentiment"],
-        segments=[Segment(index=0, text="hola")],
-    ).model_dump(mode="json")
 
 
 class Broken:
@@ -140,7 +214,7 @@ def test_publishes_permanent_step_failed_without_retries(
 ):
     model = Broken()
     monkeypatch.setattr("analyzer.models.load", lambda analysis, lang: model)
-    monkeypatch.setattr(worker, "LANGUAGE", "es")
+    monkeypatch.setattr("analyzer.models.LANGUAGE", "es")
 
     worker.analyze_job.apply(args=[message])
 

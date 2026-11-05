@@ -90,7 +90,7 @@ def test_duplicate_results_change_nothing(stack, model):
 
 def test_results_after_a_step_failed_change_nothing(stack, model, monkeypatch):
     model()
-    monkeypatch.setattr("analyzer.worker.LANGUAGE", "en")
+    monkeypatch.setattr("analyzer.models.LANGUAGE", "en")
     job = run_job(stack)
     job_id = UUID(job["job_id"])
     publish_result(
@@ -145,7 +145,7 @@ def test_exhausted_retries_fail_the_job_with_its_error(stack, model):
 def test_permanent_error_fails_the_job_without_retries(stack, model, monkeypatch):
     fake = model()
     # This Analyzer listens on analyze.es but serves another language, as a misrouted Job would.
-    monkeypatch.setattr("analyzer.worker.LANGUAGE", "en")
+    monkeypatch.setattr("analyzer.models.LANGUAGE", "en")
 
     job = run_job(stack)
 

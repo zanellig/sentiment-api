@@ -73,3 +73,25 @@ def test_tenant_cannot_read_another_tenants_job(stack, model):
     wait_for_done(stack, url, acme)
 
     assert stack.get(url, headers=globex).status_code == 404
+
+
+def test_job_runs_the_analyses_it_asks_for(stack, model):
+    model.release.set()
+    acme = {"X-Consumer-Username": "acme"}
+    body = {
+        "texts": ["Me encanta!"],
+        "lang": "es",
+        "analyses": ["sentiment", "emotion"],
+    }
+    response = stack.post("/jobs", json=body, headers=acme)
+
+    job = wait_for_done(stack, f"/jobs/{response.json()['job_id']}", acme)
+
+    assert [r["analysis"] for r in job["segments"][0]["results"]] == [
+        "sentiment",
+        "emotion",
+    ]
+    assert (
+        stack.post("/jobs", json={**body, "analyses": []}, headers=acme).status_code
+        == 422
+    )
