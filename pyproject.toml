@@ -7,7 +7,7 @@ license = "MIT"
 dependencies = ["analyzer", "contracts", "jobs-api"]
 
 [dependency-groups]
-dev = ["pytest", "httpx"]
+dev = ["pytest", "httpx", "pyright==1.1.414", "celery-types==0.26.0"]
 
 [tool.uv.workspace]
 members = ["services/*", "packages/*"]
@@ -27,3 +27,16 @@ explicit = true
 testpaths = ["services/analyzer/tests", "services/jobs-api/tests", "packages/contracts/tests"]
 # main.py sits beside app/ and is not part of the installed package
 pythonpath = ["services/analyzer"]
+
+[tool.pyright]
+include = [
+    "packages/contracts/src",
+    "services/analyzer/src",
+    "services/jobs-api/src",
+]
+# The legacy synchronous service is deleted by #12, not typed.
+exclude = ["services/analyzer/app"]
+pythonVersion = "3.12"
+venvPath = "."
+venv = ".venv"
+typeCheckingMode = "strict"
