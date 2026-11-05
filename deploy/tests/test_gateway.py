@@ -13,7 +13,8 @@ COMPOSE = ["docker", "compose", "-f", str(Path(__file__).parents[1] / "compose.y
 # The static dev-only consumers in deploy/apisix/apisix.yaml.
 INITECH = {"apikey": "dev-only-initech-key"}
 UMBRELLA = {"apikey": "dev-only-umbrella-key"}
-TEXT_JOB = {"texts": ["Me encanta!"], "lang": "es"}
+# No test worker consumes analyze.pt, so these Jobs never reach a real model loader.
+TEXT_JOB = {"texts": ["Adoro!"], "lang": "pt"}
 
 
 @pytest.fixture(scope="session")
