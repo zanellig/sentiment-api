@@ -11,4 +11,5 @@ ENV PATH="/app/.venv/bin:$PATH"
 USER nobody
 
 EXPOSE 8000
+# shortcut: replicas starting together on an unmigrated database race in Alembic, move migrations to a one-off job before running more than one replica.
 CMD ["sh", "-c", "alembic -c services/jobs-api/alembic.ini upgrade head && exec uvicorn jobs_api.http:app --host 0.0.0.0 --port 8000"]
