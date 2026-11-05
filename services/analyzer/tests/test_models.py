@@ -114,3 +114,47 @@ def test_token_model_runs_on_the_configured_device(gpu_host, task, chunk):
     assert single.tokens == TEXTS[0].split()
     assert all(isinstance(p.entities, list) == chunk for p in predictions)
     assert Tokens(analyzer, CPU).predict([]) == []
+
+
+LONG = "pablo vive en madrid y me encanta el producto pero pésimo servicio hola"
+
+
+def every_token_a_person(task, max_length, chunk):
+    """A token model that labels every token B-PER, behind a tokenizer limited to `max_length`."""
+    words = {*LONG.split(), "jajajaja", "jaja"}
+    vocab = {w: i for i, w in enumerate(["[PAD]", "[UNK]", *sorted(words)])}
+    backend = Tokenizer(WordLevel(vocab, unk_token="[UNK]"))
+    backend.pre_tokenizer = Whitespace()
+    small = PreTrainedTokenizerFast(tokenizer_object=backend, unk_token="[UNK]", pad_token="[PAD]")
+    model = BertForTokenClassification(config(["O", "B-PER", "I-PER", "B-LOC"])).eval()
+    model.classifier.bias.data[1] = 100.0
+    analyzer = AnalyzerForTokenClassification(model, small, task, lang="es", chunk=chunk)
+    small.model_max_length = max_length  # pysentimiento sets 128 in its constructor
+    return analyzer
+
+
+@pytest.mark.parametrize("task, chunk", [("ner", True), ("pos", False)])
+def test_texts_past_the_token_limit_get_every_word_labelled(gpu_host, task, chunk):
+    analyzer = every_token_a_person(task, max_length=5, chunk=chunk)
+
+    [prediction] = Tokens(analyzer, CPU).predict([LONG])
+
+    assert prediction.tokens == LONG.split()
+    assert None not in prediction.labels and len(prediction.labels) == len(prediction.tokens)
+
+
+def test_entity_offsets_point_into_the_segment_text(gpu_host):
+    analyzer = every_token_a_person("ner", max_length=5, chunk=True)
+
+    [prediction] = Tokens(analyzer, CPU).predict([LONG])
+
+    assert [e["text"] for e in prediction.entities] == LONG.split()
+    assert all(LONG[e["start"] : e["end"]] == e["text"] for e in prediction.entities)
+
+
+def test_entity_offsets_are_unknown_when_preprocessing_rewrote_the_text(gpu_host):
+    analyzer = every_token_a_person("ner", max_length=512, chunk=True)
+
+    [prediction] = Tokens(analyzer, CPU).predict(["jajajaja pablo"])
+
+    assert prediction.entities and all(e["start"] is None for e in prediction.entities)

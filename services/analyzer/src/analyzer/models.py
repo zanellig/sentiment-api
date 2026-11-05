@@ -5,7 +5,8 @@ Each deployment serves one language (`ANALYZER_LANG`, ADR-0007) and runs its mod
 """
 
 import os
-from collections.abc import Callable
+import re
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from functools import cache
 from typing import Any, Protocol, cast
@@ -50,8 +51,15 @@ class _SequenceAnalyzer(Protocol):
     preprocessing_args: dict[str, Any]
 
 
+class _SpacyToken(Protocol):
+    text: str
+
+
 class _TokenAnalyzer(Protocol):
     model: torch.nn.Module
+    tokenizer: PreTrainedTokenizerBase
+    spacy_tokenizer: Callable[[str], Iterable[_SpacyToken]]
+    preprocessing_args: dict[str, Any]
 
     def predict(self, inputs: list[str]) -> list[TokenPrediction] | TokenPrediction: ...
 
@@ -60,6 +68,13 @@ class _TokenAnalyzer(Protocol):
 class _Output:
     output: str | list[str]
     probas: dict[str, float]
+
+
+@dataclass
+class _TokenOutput:
+    tokens: list[str]
+    labels: list[str]
+    entities: list[dict[str, Any]] | None
 
 
 class Sequence:
@@ -108,20 +123,73 @@ class Sequence:
 
 
 class Tokens:
-    """pysentimiento's token analyzer, with its model moved to `device`."""
+    """pysentimiento's token analyzer, with its model moved to `device`.
+
+    pysentimiento truncates at the model's subword limit, which leaves later words without a
+    label (NER) or crashes (POS), so a long text runs as several chunks that each fit.
+    """
 
     def __init__(self, analyzer: _TokenAnalyzer, device: torch.device):
         analyzer.model.to(device)
         self._analyzer = analyzer
+        self._max_length = cast(int, analyzer.tokenizer.model_max_length)  # pyright: ignore[reportUnknownMemberType]
 
     def predict(self, texts: list[str]) -> list[TokenPrediction]:
-        if not texts:
-            return []
+        spans = [self._split(text, [m.span() for m in re.finditer(r"\S+", text)]) for text in texts]
+        chunks = [text[start:end] for text, s in zip(texts, spans) for start, end in s]
+        predictions: list[TokenPrediction] = []
         with torch.inference_mode():
-            outputs = self._analyzer.predict(texts)
-        # shortcut: words past the model's 128 subword tokens get a None label (NER) or crash
-        # pysentimiento (POS); split long Segments when Jobs carry them.
-        return outputs if isinstance(outputs, list) else [outputs]  # one text gives no list
+            for start in range(0, len(chunks), BATCH_SIZE):
+                outputs = self._analyzer.predict(chunks[start : start + BATCH_SIZE])
+                predictions += outputs if isinstance(outputs, list) else [outputs]  # one text gives no list
+        joined: list[TokenPrediction] = []
+        remaining = iter(predictions)
+        for text, s in zip(texts, spans):
+            parts = [(start, end, next(remaining)) for start, end in s]
+            entities = None
+            if parts[0][2].entities is not None:
+                entities = [
+                    self._in_text(entity, text, start, end)
+                    for start, end, p in parts
+                    for entity in p.entities or []
+                ]
+            joined.append(
+                _TokenOutput(
+                    tokens=[t for _, _, p in parts for t in p.tokens],
+                    labels=[label for _, _, p in parts for label in p.labels],
+                    entities=entities,
+                )
+            )
+        return joined
+
+    def _split(self, text: str, words: list[tuple[int, int]]) -> list[tuple[int, int]]:
+        """Spans of `text` that each fit the model, halving the words until they do.
+
+        shortcut: an entity across a split comes back as two, and a single word past the limit
+        is still truncated; split at sentence ends if long Segments turn out common.
+        """
+        if not words:
+            return [(0, len(text))]
+        start, end = words[0][0], words[-1][1]
+        if len(words) == 1 or self._fits(text[start:end]):
+            return [(start, end)]
+        half = len(words) // 2
+        return self._split(text, words[:half]) + self._split(text, words[half:])
+
+    def _fits(self, chunk: str) -> bool:
+        """Whether pysentimiento would see every subword token of `chunk`, tokenized as it does."""
+        analyzer = self._analyzer
+        words = [t.text for t in analyzer.spacy_tokenizer(_preprocess(chunk, **analyzer.preprocessing_args))]
+        encoding = analyzer.tokenizer(words, is_split_into_words=True)
+        return len(cast(list[int], encoding["input_ids"])) <= self._max_length
+
+    def _in_text(self, entity: dict[str, Any], text: str, start: int, end: int) -> dict[str, Any]:
+        """pysentimiento's offsets are into the preprocessed chunk; they hold in `text` only when
+        preprocessing changed nothing."""
+        chunk = text[start:end]
+        if _preprocess(chunk, **self._analyzer.preprocessing_args) != chunk:
+            return {**entity, "start": None, "end": None}
+        return {**entity, "start": start + entity["start"], "end": start + entity["end"]}
 
 
 def supports(analysis: Analysis, lang: str) -> bool:
