@@ -28,6 +28,7 @@ Applied alongside the triage role. A ticket carries one service label and any ri
 | `needs-gpu` | Done only after a run with real models on Codespaces, RunPod or the RTX 3070 machine |
 | `privacy` | Touches Voices, embeddings, identities or retention (ADR-0013, 0015, 0016) |
 | `adr` | Contradicts an ADR or needs a new one before implementation |
+| `optional` | Nice to have; evaluate before committing to it |
 
 Tickets on different service labels can usually run in parallel; tickets on the same one usually touch the same files.
 
