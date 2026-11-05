@@ -1,6 +1,6 @@
 # Monorepo con una imagen por servicio
 
-El sistema vive en un solo repo con espacio de trabajo `uv`: `services/api` (Jobs API), `services/transcriber` (WhisperX), `services/analyzer` (pysentimiento) y `packages/contracts` (mensajes Pydantic sin torch). Cada servicio tiene su propia imagen y su propio set de dependencias, y escala por separado según capacidad o necesidad. Elegimos monorepo porque hay un solo desarrollador y así un cambio de contrato toca productor y consumidor en el mismo commit. Elegimos imágenes separadas porque WhisperX fija versiones de `torch`, `ctranslate2`, `pyannote` y `huggingface-hub` que chocan con las de pysentimiento, y porque el Transcriber necesita GPU mientras el Analyzer anda bien en CPU.
+El sistema vive en un solo repo con espacio de trabajo `uv`: `services/jobs-api` (Jobs API), `services/transcriber` (WhisperX), `services/analyzer` (pysentimiento) y `packages/contracts` (mensajes Pydantic sin torch). Cada servicio tiene su propia imagen y su propio set de dependencias, y escala por separado según capacidad o necesidad. Elegimos monorepo porque hay un solo desarrollador y así un cambio de contrato toca productor y consumidor en el mismo commit. Elegimos imágenes separadas porque WhisperX fija versiones de `torch`, `ctranslate2`, `pyannote` y `huggingface-hub` que chocan con las de pysentimiento, y porque el Transcriber necesita GPU mientras el Analyzer anda bien en CPU.
 
 ## Considered Options
 

@@ -8,7 +8,7 @@ import os
 from celery import Celery
 from contracts import AnalysisReady, AnalyzeRequested
 
-from analyzer.analyze import analyze
+from analyzer import analyze
 
 STORE_RESULT = "jobs_api.store_result"
 
