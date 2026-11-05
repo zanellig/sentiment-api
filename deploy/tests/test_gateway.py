@@ -41,6 +41,19 @@ def test_rejects_an_unknown_key(gateway):
     assert gateway.post("/jobs", json=TEXT_JOB, headers={"apikey": "guess"}).status_code == 401
 
 
+def test_rejects_a_key_in_the_query_string(gateway):
+    key = INITECH["apikey"]
+    # Also percent-encoded: key-auth decodes argument names before it looks the key up.
+    for query in f"apikey={key}", f"api%6Bey={key}":
+        assert gateway.post(f"/jobs?{query}", json=TEXT_JOB).status_code == 400
+
+
+def test_rejects_a_key_in_both_the_header_and_the_query_string(gateway):
+    # hide_credentials would strip only the header and forward the query key.
+    response = gateway.post("/jobs", params=INITECH, json=TEXT_JOB, headers=INITECH)
+    assert response.status_code == 400
+
+
 def test_tenant_cannot_read_another_tenants_job(gateway):
     response = gateway.post("/jobs", json=TEXT_JOB, headers=INITECH)
     assert response.status_code == 202
