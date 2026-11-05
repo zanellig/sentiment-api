@@ -56,7 +56,7 @@ def _send(request: AnalyzeRequested) -> None:
 
 
 def create_text_job(
-    tenant: str, texts: list[str], lang: str
+    tenant: str, texts: list[str], lang: str, analyses: list[Analysis]
 ) -> tuple[UUID, Literal["analyzing", "pending"]]:
     """Store a Job with one Segment per text and send its single `AnalyzeRequested` (ADR-0006),
     or keep it `pending` while the Tenant is at its quota.
@@ -67,7 +67,7 @@ def create_text_job(
             tenant_id=tenant,
             state=state,
             language=lang,
-            analyses=[Analysis.SENTIMENT.value],
+            analyses=[a.value for a in analyses],
             segments=[Segment(index=i, text=text) for i, text in enumerate(texts)],
         )
         session.add(job)
