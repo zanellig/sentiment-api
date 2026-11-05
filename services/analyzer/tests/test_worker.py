@@ -1,10 +1,10 @@
-"""Seam 2: given an `AnalyzeRequested`, the worker publishes the expected `AnalysisReady`."""
+"""Seam 2: given an `AnalyzeRequested`, the worker publishes `AnalysisReady` or `StepFailed`."""
 
 from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
-from contracts import Analysis, AnalysisReady, AnalyzeRequested, Segment
+from contracts import Analysis, AnalysisReady, AnalyzeRequested, Segment, StepFailed
 
 from analyzer import analyze, worker
 
@@ -60,3 +60,62 @@ def test_rejects_several_labels_for_a_single_label_analysis(monkeypatch):
 
     with pytest.raises(TypeError, match="several labels"):
         analyze([Segment(index=0, text="hola")], [Analysis.SENTIMENT], "es")
+
+
+def request(language="es"):
+    return AnalyzeRequested(
+        job_id=uuid4(),
+        tenant_id="acme",
+        language=language,
+        analyses=["sentiment"],
+        segments=[Segment(index=0, text="hola")],
+    ).model_dump(mode="json")
+
+
+class Broken:
+    def __init__(self):
+        self.calls = 0
+
+    def predict(self, texts):
+        self.calls += 1
+        raise ConnectionError("model server unreachable")
+
+
+def test_publishes_step_failed_after_exhausting_retries(monkeypatch, published):
+    model = Broken()
+    monkeypatch.setattr("analyzer.models.load", lambda analysis, lang: model)
+    message = request()
+
+    worker.analyze_job.apply(args=[message])  # eager: retries run inline, without the backoff
+
+    assert model.calls == 1 + worker.MAX_RETRIES
+    [(name, [failure])] = published
+    assert name == "jobs_api.store_result"
+    assert StepFailed.model_validate(failure).model_dump(mode="json") == {
+        "job_id": message["job_id"],
+        "tenant_id": "acme",
+        "step": "analyze",
+        "error": "ConnectionError: model server unreachable",
+        "permanent": False,
+    }
+
+
+@pytest.mark.parametrize(
+    "message, error",
+    [
+        ({**request(), "segments": "hola"}, "Malformed AnalyzeRequested"),
+        (request(language="en"), "Language 'en' is not served by this Analyzer"),
+    ],
+)
+def test_publishes_permanent_step_failed_without_retries(monkeypatch, published, message, error):
+    model = Broken()
+    monkeypatch.setattr("analyzer.models.load", lambda analysis, lang: model)
+    monkeypatch.setattr(worker, "LANGUAGE", "es")
+
+    worker.analyze_job.apply(args=[message])
+
+    assert model.calls == 0
+    [(_, [failure])] = published
+    failed = StepFailed.model_validate(failure)
+    assert (str(failed.job_id), failed.permanent) == (message["job_id"], True)
+    assert failed.error.startswith(error)
