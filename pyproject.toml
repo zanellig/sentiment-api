@@ -7,7 +7,7 @@ license = "MIT"
 dependencies = ["analyzer", "contracts", "jobs-api"]
 
 [dependency-groups]
-dev = ["pytest", "httpx", "basedpyright==1.40.2", "celery-types==0.26.0"]
+dev = ["pytest", "httpx", "basedpyright==1.40.2", "ruff==0.17.4", "celery-types==0.26.0"]
 
 [tool.uv.workspace]
 members = ["services/*", "packages/*"]
