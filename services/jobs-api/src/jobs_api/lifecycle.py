@@ -15,7 +15,7 @@ from jobs_api.db.models import Job, Segment, StepResult
 ANALYZE = "analyzer.analyze"
 
 
-def create_text_job(tenant: str, texts: list[str], lang: str) -> UUID:
+def create_text_job(tenant: str, texts: list[str], lang: str, analyses: list[Analysis]) -> UUID:
     """Store a Job with one Segment per text and send its single `AnalyzeRequested` (ADR-0006)."""
     segments = [contracts.Segment(index=i, text=text) for i, text in enumerate(texts)]
     with Session.begin() as session:
@@ -33,7 +33,7 @@ def create_text_job(tenant: str, texts: list[str], lang: str) -> UUID:
         job_id=job_id,
         tenant_id=tenant,
         language=lang,
-        analyses=[Analysis.SENTIMENT],
+        analyses=analyses,
         segments=segments,
     )
     app.send_task(ANALYZE, args=[request.model_dump(mode="json")], queue=f"analyze.{lang}")

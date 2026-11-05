@@ -3,6 +3,7 @@
 from typing import Annotated, Literal
 from uuid import UUID
 
+from contracts import Analysis
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -26,6 +27,7 @@ class TextJob(BaseModel):
 
     texts: list[str] = Field(min_length=1)
     lang: Literal["es", "en", "it", "pt"]  # one analyze.<lang> queue each (ADR-0007)
+    analyses: list[Analysis] = Field(default=[Analysis.SENTIMENT], min_length=1)
 
 
 class JobCreated(BaseModel):
@@ -35,7 +37,9 @@ class JobCreated(BaseModel):
 
 @app.post("/jobs", status_code=202)
 def create_job(body: TextJob, tenant: Tenant) -> JobCreated:
-    return JobCreated(job_id=lifecycle.create_text_job(tenant, body.texts, body.lang))
+    return JobCreated(
+        job_id=lifecycle.create_text_job(tenant, body.texts, body.lang, body.analyses)
+    )
 
 
 @app.get("/jobs/{job_id}")
