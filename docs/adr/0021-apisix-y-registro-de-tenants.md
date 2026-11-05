@@ -1,3 +1,7 @@
+---
+status: el modo standalone es reemplazado por ADR-0025; el plan, por ADR-0026
+---
+
 # Apache APISIX como gateway, con el registro de Tenants en el Jobs API
 
 El gateway es Apache APISIX: corre en modo standalone en `docker compose` y como ingress controller en EKS o AKS. Usa `key-auth` (cada Tenant es un consumer) y `limit-count` por consumer. Ese límite frena requests por segundo y complementa el cupo de Jobs en curso del ADR-0017. El Jobs API es dueño del registro de Tenants: su endpoint de administración crea el Tenant en la base (política, cupo, plan) y después su consumer y su key en APISIX con la Admin API. Los consumers no se administran a mano en APISIX, para que no haya Tenants que existan en un lado y no en el otro.
