@@ -76,6 +76,31 @@ def test_duplicate_results_change_nothing(stack, model):
     assert job["segments"][0]["results"][0]["label"] == "POS"
 
 
+def test_results_after_a_step_failed_change_nothing(stack, model, monkeypatch):
+    model()
+    monkeypatch.setattr("analyzer.worker.LANGUAGE", "en")
+    job = run_job(stack)
+    job_id = UUID(job["job_id"])
+    publish_result(
+        StepFailed(job_id=job_id, tenant_id="acme", step="analyze", error="late", permanent=False)
+    )
+    labelled = SequenceResult(analysis="sentiment", label="POS", probabilities={"POS": 1.0})
+    publish_result(
+        AnalysisReady(
+            job_id=job_id,
+            tenant_id="acme",
+            segments=[SegmentAnalyses(index=0, results=[labelled])],
+        )
+    )
+    # `results` is consumed in order by one solo worker: once a later Job fails, both are in.
+    run_job(stack)
+
+    assert stack.get(f"/jobs/{job_id}", headers=ACME).json() == job
+    assert job["state"] == "failed"
+    assert job["error"] == "Language 'es' is not served by this Analyzer"
+    assert job["segments"][0]["results"] == []
+
+
 def test_transient_failure_recovers_within_retries(stack, model):
     fake = model(failures=3)
 
@@ -92,7 +117,7 @@ def test_exhausted_retries_fail_the_job_with_its_error(stack, model):
     job = run_job(stack)
 
     assert job["state"] == "failed"
-    assert job["error"] == "ConnectionError: model server unreachable"
+    assert job["error"] == "Analysis failed after 3 retries"
     assert job["segments"][0]["results"] == []
     assert fake.calls == 4  # the first attempt and 3 retries
 
