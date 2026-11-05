@@ -19,7 +19,7 @@ packages/
 └── contracts/      # mensajes Pydantic, sin torch
 deploy/
 ├── compose.yaml    # perfiles cpu / gpu
-└── apisix/         # configuración de APISIX (etcd, ADR-0024)
+└── apisix/         # configuración de APISIX (etcd, ADR-0025)
 docs/adr/  GLOSSARY.md  plans/
 ```
 
@@ -66,8 +66,8 @@ docs/adr/  GLOSSARY.md  plans/
 
 ### 4. Gateway
 
-- APISIX en modo tradicional con etcd en compose, con `key-auth` y `limit-count` por consumer (ADR-0021, ADR-0024).
-- Registro de Tenants en el Jobs API que crea el Tenant, con su cupo y su límite de tasa (ADR-0025), y su consumer en APISIX. La key se muestra una sola vez.
+- APISIX en modo tradicional con etcd en compose, con `key-auth` y `limit-count` por consumer (ADR-0021, ADR-0025).
+- Registro de Tenants en el Jobs API que crea el Tenant, con su cupo y su límite de tasa (ADR-0026), y su consumer en APISIX. La key se muestra una sola vez.
 - El Jobs API solo está en la red interna de compose.
 
 **Hecho cuando:** hay tests contra el stack de compose que verifican cuatro cosas: sin key da 401; con la key de un Tenant no se ve ningún Job de otro; un `X-Consumer-Username` falso que manda el cliente queda pisado por el gateway; y el puerto del Jobs API no está publicado en el host.
