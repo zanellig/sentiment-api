@@ -11,16 +11,16 @@ jobs:
     env:
       HF_HUB_OFFLINE: "1"
       TRANSFORMERS_OFFLINE: "1"
-      # Fail instead of skipping the integration tests when Postgres or Redis is missing.
+      # Fail instead of skipping the integration tests when Postgres, Redis or the gateway is missing.
       REQUIRE_INTEGRATION: "1"
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
-      - run: docker compose -f deploy/compose.yaml up -d --wait
+      - run: docker compose -f deploy/compose.yaml --profile gateway up -d --wait --build
       - run: uv sync --locked
       - run: uv run pyright
       - run: uv run pytest
       - if: always()
-        run: docker compose -f deploy/compose.yaml down -v
+        run: docker compose -f deploy/compose.yaml --profile gateway down -v
