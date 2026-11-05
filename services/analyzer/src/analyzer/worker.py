@@ -1,7 +1,8 @@
 """Celery transport: consume `analyze.<lang>`, publish `AnalysisReady` on `results` (ADR-0014).
 
-Run one deployment per language (ADR-0007), on the device it should use:
-`ANALYZER_LANG=es ANALYZER_DEVICE=cpu celery -A analyzer.worker worker -Q analyze.es`.
+Run one deployment per language (ADR-0007), on the device it should use. CPU deployments hide
+the GPU, which pysentimiento's Trainer otherwise touches while loading:
+`CUDA_VISIBLE_DEVICES= ANALYZER_LANG=es ANALYZER_DEVICE=cpu celery -A analyzer.worker worker -Q analyze.es`.
 A step that keeps failing, or fails permanently, publishes `StepFailed` instead (ADR-0010).
 """
 
