@@ -3,7 +3,8 @@
 from uuid import UUID
 
 import contracts
-from contracts import Analysis, AnalysisReady, AnalyzeRequested, Step
+from contracts import Analysis, AnalysisReady, AnalysisResult, AnalyzeRequested, Step
+from pydantic import BaseModel
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
 
@@ -39,25 +40,41 @@ def create_text_job(tenant: str, texts: list[str], lang: str) -> UUID:
     return job_id
 
 
-def read_job(tenant: str, job_id: UUID) -> dict | None:
+class SegmentView(BaseModel):
+    index: int
+    text: str
+    results: list[AnalysisResult]
+
+
+class JobView(BaseModel):
+    """What a Tenant reads about one of its Jobs."""
+
+    job_id: UUID
+    state: str
+    language: str
+    segments: list[SegmentView]
+    warnings: list[str]
+
+
+def read_job(tenant: str, job_id: UUID) -> JobView | None:
     """The Job with its per-Segment results, or None when this Tenant has no such Job."""
     with Session() as session:
         job = session.scalar(select(Job).where(Job.id == job_id, Job.tenant_id == tenant))
         if job is None:
             return None
-        result = session.get(StepResult, (job_id, Step.ANALYZE.value))
-        analysis = result.payload if result else {"segments": [], "warnings": []}
-        results = {s["index"]: s["results"] for s in analysis["segments"]}
-        return {
-            "job_id": job.id,
-            "state": job.state,
-            "language": job.language,
-            "segments": [
-                {"index": s.index, "text": s.text, "results": results.get(s.index, [])}
+        stored = session.get(StepResult, (job_id, Step.ANALYZE.value))
+        analysis = AnalysisReady.model_validate(stored.payload) if stored else None
+        results = {s.index: s.results for s in analysis.segments} if analysis else {}
+        return JobView(
+            job_id=job.id,
+            state=job.state,
+            language=job.language,
+            segments=[
+                SegmentView(index=s.index, text=s.text, results=results.get(s.index, []))
                 for s in job.segments
             ],
-            "warnings": analysis["warnings"],
-        }
+            warnings=analysis.warnings if analysis else [],
+        )
 
 
 def record_analysis(message: AnalysisReady) -> None:

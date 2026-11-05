@@ -28,13 +28,18 @@ class TextJob(BaseModel):
     lang: Literal["es", "en", "it", "pt"]  # one analyze.<lang> queue each (ADR-0007)
 
 
+class JobCreated(BaseModel):
+    job_id: UUID
+    state: Literal["analyzing"] = "analyzing"
+
+
 @app.post("/jobs", status_code=202)
-def create_job(body: TextJob, tenant: Tenant) -> dict:
-    return {"job_id": lifecycle.create_text_job(tenant, body.texts, body.lang), "state": "analyzing"}
+def create_job(body: TextJob, tenant: Tenant) -> JobCreated:
+    return JobCreated(job_id=lifecycle.create_text_job(tenant, body.texts, body.lang))
 
 
 @app.get("/jobs/{job_id}")
-def get_job(job_id: UUID, tenant: Tenant) -> dict:
+def get_job(job_id: UUID, tenant: Tenant) -> lifecycle.JobView:
     job = lifecycle.read_job(tenant, job_id)
     if job is None:
         raise HTTPException(404, "Job not found")
