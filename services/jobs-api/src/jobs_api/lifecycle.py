@@ -1,9 +1,9 @@
-"""A Job's lifecycle (ADR-0002). Text Jobs start in `analyzing` and end in `done`."""
+"""A Job's lifecycle (ADR-0002). Text Jobs start in `analyzing` and end in `done` or `failed`."""
 
 from uuid import UUID
 
 import contracts
-from contracts import Analysis, AnalysisReady, AnalysisResult, AnalyzeRequested, Step
+from contracts import Analysis, AnalysisReady, AnalysisResult, AnalyzeRequested, Step, StepFailed
 from pydantic import BaseModel
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
@@ -54,6 +54,7 @@ class JobView(BaseModel):
     language: str
     segments: list[SegmentView]
     warnings: list[str]
+    error: str | None = None
 
 
 def read_job(tenant: str, job_id: UUID) -> JobView | None:
@@ -62,7 +63,9 @@ def read_job(tenant: str, job_id: UUID) -> JobView | None:
         job = session.scalar(select(Job).where(Job.id == job_id, Job.tenant_id == tenant))
         if job is None:
             return None
-        stored = session.get(StepResult, (job_id, Step.ANALYZE.value))
+        key = (job_id, Step.ANALYZE.value)
+        # A failed Job stored its StepFailed under this key instead of the labels.
+        stored = session.get(StepResult, key) if job.state == "done" else None
         analysis = AnalysisReady.model_validate(stored.payload) if stored else None
         results = {s.index: s.results for s in analysis.segments} if analysis else {}
         return JobView(
@@ -74,11 +77,16 @@ def read_job(tenant: str, job_id: UUID) -> JobView | None:
                 for s in job.segments
             ],
             warnings=analysis.warnings if analysis else [],
+            error=job.error,
         )
 
 
-def record_analysis(message: AnalysisReady) -> None:
-    """Store the Analyzer's labels and finish the Job; a duplicate message changes nothing."""
+def record_result(message: AnalysisReady | StepFailed) -> None:
+    """Store a worker's message and finish the Job: `done` with the labels, or `failed` with the
+    error. Only the first message per `(job_id, step)` counts; a later one of either kind changes
+    nothing (ADR-0010).
+    """
+    error = message.error if isinstance(message, StepFailed) else None
     with Session.begin() as session:
         stored = session.execute(
             insert(StepResult)
@@ -91,4 +99,8 @@ def record_analysis(message: AnalysisReady) -> None:
             .returning(StepResult.job_id)
         ).first()
         if stored:
-            session.execute(update(Job).where(Job.id == message.job_id).values(state="done"))
+            session.execute(
+                update(Job)
+                .where(Job.id == message.job_id)
+                .values(state="done" if error is None else "failed", error=error)
+            )

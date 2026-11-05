@@ -17,6 +17,7 @@ class Job(Base):
     tenant_id: Mapped[str]
     state: Mapped[str]
     language: Mapped[str]
+    error: Mapped[str | None] = mapped_column(Text)
     segments: Mapped[list["Segment"]] = relationship(order_by="Segment.index")
 
 
