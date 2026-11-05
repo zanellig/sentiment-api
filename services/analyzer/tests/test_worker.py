@@ -81,7 +81,21 @@ class Broken:
         raise ConnectionError("model server unreachable")
 
 
-def test_publishes_step_failed_after_exhausting_retries(monkeypatch, published):
+@pytest.fixture
+def countdowns(monkeypatch):
+    """The countdown of every retry; eager execution runs them at once, ignoring it."""
+    seen = []
+    retry = worker.analyze_job.retry
+
+    def spy(**options):
+        seen.append(options["countdown"])
+        return retry(**options)
+
+    monkeypatch.setattr(worker.analyze_job, "retry", spy)
+    return seen
+
+
+def test_publishes_step_failed_after_exhausting_retries(monkeypatch, published, countdowns):
     model = Broken()
     monkeypatch.setattr("analyzer.models.load", lambda analysis, lang: model)
     message = request()
@@ -89,13 +103,14 @@ def test_publishes_step_failed_after_exhausting_retries(monkeypatch, published):
     worker.analyze_job.apply(args=[message])  # eager: retries run inline, without the backoff
 
     assert model.calls == 1 + worker.MAX_RETRIES
+    assert countdowns == [2.0, 4.0, 8.0]  # BACKOFF_SECONDS, doubling
     [(name, [failure])] = published
     assert name == "jobs_api.store_result"
     assert StepFailed.model_validate(failure).model_dump(mode="json") == {
         "job_id": message["job_id"],
         "tenant_id": "acme",
         "step": "analyze",
-        "error": "ConnectionError: model server unreachable",
+        "error": "Analysis failed after 3 retries",
         "permanent": False,
     }
 
@@ -103,19 +118,39 @@ def test_publishes_step_failed_after_exhausting_retries(monkeypatch, published):
 @pytest.mark.parametrize(
     "message, error",
     [
-        ({**request(), "segments": "hola"}, "Malformed AnalyzeRequested"),
+        ({**request(), "segments": "hola"}, "Malformed analysis request"),
         (request(language="en"), "Language 'en' is not served by this Analyzer"),
     ],
 )
-def test_publishes_permanent_step_failed_without_retries(monkeypatch, published, message, error):
+def test_publishes_permanent_step_failed_without_retries(
+    monkeypatch, published, countdowns, message, error
+):
     model = Broken()
     monkeypatch.setattr("analyzer.models.load", lambda analysis, lang: model)
     monkeypatch.setattr(worker, "LANGUAGE", "es")
 
     worker.analyze_job.apply(args=[message])
 
-    assert model.calls == 0
+    assert (model.calls, countdowns) == (0, [])
     [(_, [failure])] = published
     failed = StepFailed.model_validate(failure)
     assert (str(failed.job_id), failed.permanent) == (message["job_id"], True)
-    assert failed.error.startswith(error)
+    assert failed.error == error
+
+
+@pytest.mark.parametrize("tenant_id", [None, 42])
+def test_fails_a_job_whose_tenant_id_is_missing_or_invalid(published, tenant_id):
+    message = {k: v for k, v in request().items() if k != "tenant_id"}
+    if tenant_id is not None:
+        message["tenant_id"] = tenant_id
+
+    worker.analyze_job.apply(args=[message])
+
+    [(_, [failure])] = published
+    assert StepFailed.model_validate(failure).model_dump(mode="json") == {
+        "job_id": message["job_id"],
+        "tenant_id": worker.UNKNOWN_TENANT,
+        "step": "analyze",
+        "error": "Malformed analysis request",
+        "permanent": True,
+    }

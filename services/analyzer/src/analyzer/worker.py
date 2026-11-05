@@ -5,6 +5,7 @@ Run one deployment per language:
 A step that keeps failing, or fails permanently, publishes `StepFailed` instead (ADR-0010).
 """
 
+import logging
 import os
 from typing import Any
 
@@ -15,10 +16,14 @@ from pydantic import BaseModel, ValidationError
 from analyzer import analyze
 
 STORE_RESULT = "jobs_api.store_result"
+# Stands in for a missing or invalid tenant_id, which is for logging only.
+UNKNOWN_TENANT = "unknown"
 MAX_RETRIES = 3
 BACKOFF_SECONDS = 2.0  # doubles on each retry
 # The language this deployment serves (ADR-0007); unset serves any.
 LANGUAGE = os.environ.get("ANALYZER_LANGUAGE")
+
+log = logging.getLogger(__name__)
 
 app = Celery("analyzer", broker=os.environ.get("CELERY_BROKER_URL", "redis://localhost:56379/0"))
 app.conf.update(
@@ -37,24 +42,28 @@ def parse(message: dict[str, Any]) -> AnalyzeRequested:
     try:
         request = AnalyzeRequested.model_validate(message)
     except ValidationError as error:
-        raise PermanentError(f"Malformed AnalyzeRequested: {error}") from error
+        raise PermanentError("Malformed analysis request") from error
     if LANGUAGE and request.language != LANGUAGE:
         raise PermanentError(f"Language '{request.language}' is not served by this Analyzer")
     return request
 
 
 def publish(message: BaseModel) -> None:
+    # shortcut: a failed send is still acked and the Job stays analyzing; add a Job timeout if seen.
     app.send_task(STORE_RESULT, args=[message.model_dump(mode="json")])
 
 
 def failed(message: dict[str, Any], error: Exception, permanent: bool) -> StepFailed:
+    # Tenants see a stable error per kind; the details stay in the worker's log.
+    log.error("Job %s: analysis failed", message.get("job_id"), exc_info=error)
+    tenant_id = message.get("tenant_id")
     # A message without a valid job_id fails validation here, and Celery logs and drops it.
     return StepFailed.model_validate(
         {
             "job_id": message.get("job_id"),
-            "tenant_id": message.get("tenant_id"),
+            "tenant_id": tenant_id if isinstance(tenant_id, str) else UNKNOWN_TENANT,
             "step": Step.ANALYZE,
-            "error": str(error) if permanent else f"{type(error).__name__}: {error}",
+            "error": str(error) if permanent else f"Analysis failed after {MAX_RETRIES} retries",
             "permanent": permanent,
         }
     )
