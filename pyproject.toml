@@ -24,7 +24,12 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [tool.pytest.ini_options]
-testpaths = ["services/analyzer/tests", "services/jobs-api/tests", "packages/contracts/tests"]
+testpaths = [
+    "services/analyzer/tests",
+    "services/jobs-api/tests",
+    "packages/contracts/tests",
+    "deploy/tests",
+]
 # main.py sits beside app/ and is not part of the installed package
 pythonpath = ["services/analyzer"]
 

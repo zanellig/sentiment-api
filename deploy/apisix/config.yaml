@@ -1,0 +1,5 @@
+# Standalone, file-driven: routes and consumers come from apisix.yaml, no etcd (ADR-0021).
+deployment:
+  role: data_plane
+  role_data_plane:
+    config_provider: yaml

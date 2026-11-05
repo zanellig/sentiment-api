@@ -11,6 +11,7 @@ dependencies = [
     "fastapi",
     "psycopg[binary]",
     "sqlalchemy>=2",
+    "uvicorn",
 ]
 
 [build-system]

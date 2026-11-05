@@ -1111,6 +1111,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "psycopg", extra = ["binary"] },
     { name = "sqlalchemy" },
+    { name = "uvicorn" },
 ]
 
 [package.metadata]
@@ -1121,6 +1122,7 @@ requires-dist = [
     { name = "fastapi" },
     { name = "psycopg", extras = ["binary"] },
     { name = "sqlalchemy", specifier = ">=2" },
+    { name = "uvicorn" },
 ]
 
 [[package]]

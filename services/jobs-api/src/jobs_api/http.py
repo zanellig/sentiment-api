@@ -32,14 +32,13 @@ class TextJob(BaseModel):
 
 class JobCreated(BaseModel):
     job_id: UUID
-    state: Literal["analyzing"] = "analyzing"
+    state: Literal["analyzing", "pending"]
 
 
 @app.post("/jobs", status_code=202)
 def create_job(body: TextJob, tenant: Tenant) -> JobCreated:
-    return JobCreated(
-        job_id=lifecycle.create_text_job(tenant, body.texts, body.lang, body.analyses)
-    )
+    job_id, state = lifecycle.create_text_job(tenant, body.texts, body.lang, body.analyses)
+    return JobCreated(job_id=job_id, state=state)
 
 
 @app.get("/jobs/{job_id}")
