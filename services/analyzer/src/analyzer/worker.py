@@ -25,7 +25,9 @@ LANGUAGE = os.environ.get("ANALYZER_LANGUAGE")
 
 log = logging.getLogger(__name__)
 
-app = Celery("analyzer", broker=os.environ.get("CELERY_BROKER_URL", "redis://localhost:56379/0"))
+app = Celery(
+    "analyzer", broker=os.environ.get("CELERY_BROKER_URL", "redis://localhost:56379/0")
+)
 app.conf.update(
     task_acks_late=True,
     worker_prefetch_multiplier=1,
@@ -44,7 +46,9 @@ def parse(message: dict[str, Any]) -> AnalyzeRequested:
     except ValidationError as error:
         raise PermanentError("Malformed analysis request") from error
     if LANGUAGE and request.language != LANGUAGE:
-        raise PermanentError(f"Language '{request.language}' is not served by this Analyzer")
+        raise PermanentError(
+            f"Language '{request.language}' is not served by this Analyzer"
+        )
     return request
 
 
@@ -63,7 +67,9 @@ def failed(message: dict[str, Any], error: Exception, permanent: bool) -> StepFa
             "job_id": message.get("job_id"),
             "tenant_id": tenant_id if isinstance(tenant_id, str) else UNKNOWN_TENANT,
             "step": Step.ANALYZE,
-            "error": str(error) if permanent else f"Analysis failed after {MAX_RETRIES} retries",
+            "error": str(error)
+            if permanent
+            else f"Analysis failed after {MAX_RETRIES} retries",
             "permanent": permanent,
         }
     )
@@ -74,15 +80,22 @@ def failed(message: dict[str, Any], error: Exception, permanent: bool) -> StepFa
 def analyze_job(self: "Task[..., None]", message: dict[str, Any]) -> None:
     try:
         request = parse(message)
-        segments, warnings = analyze(request.segments, request.analyses, request.language)
+        segments, warnings = analyze(
+            request.segments, request.analyses, request.language
+        )
     except PermanentError as error:
         return publish(failed(message, error, permanent=True))
     except Exception as error:
         if self.request.retries < MAX_RETRIES:
-            raise self.retry(exc=error, countdown=BACKOFF_SECONDS * 2**self.request.retries)
+            raise self.retry(
+                exc=error, countdown=BACKOFF_SECONDS * 2**self.request.retries
+            )
         return publish(failed(message, error, permanent=False))
     publish(
         AnalysisReady(
-            job_id=request.job_id, tenant_id=request.tenant_id, segments=segments, warnings=warnings
+            job_id=request.job_id,
+            tenant_id=request.tenant_id,
+            segments=segments,
+            warnings=warnings,
         )
     )

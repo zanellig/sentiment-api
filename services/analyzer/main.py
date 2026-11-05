@@ -11,6 +11,7 @@ from app.routes.api import router
 
 logger = logging.getLogger(__name__)
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager to handle startup and shutdown events."""
@@ -25,6 +26,7 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down...")
     analyzer_service.unload_models()
     executor.shutdown(wait=True)
+
 
 app = FastAPI(
     title="Sentiment Analysis API",
@@ -70,18 +72,20 @@ Check `/health` endpoint to verify service status.
 )
 app.include_router(router)
 
+
 @app.get("/", include_in_schema=False)
 async def root():
     """Redirect root to API documentation."""
     return RedirectResponse(url="/docs", status_code=status.HTTP_308_PERMANENT_REDIRECT)
 
+
 if __name__ == "__main__":
     workers = os.cpu_count() or 1
     logger.info("Starting uvicorn with %s workers", workers)
     uvicorn.run(
-        "main:app", 
+        "main:app",
         host="0.0.0.0",
         port=8000,
         workers=1,
-        reload=settings.ENVIRONMENT == "development"
+        reload=settings.ENVIRONMENT == "development",
     )

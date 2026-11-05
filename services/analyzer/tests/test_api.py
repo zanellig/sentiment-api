@@ -29,7 +29,9 @@ def test_non_default_model_loads_on_demand(client):
 
     assert "irony" not in settings.pysentimiento.DEFAULT_MODELS
     text = next(iter(LABELS["irony"]))
-    client.post("/analyze", json={"text": text, "config": {"lang": "es", "irony": True}})
+    client.post(
+        "/analyze", json={"text": text, "config": {"lang": "es", "irony": True}}
+    )
 
     assert "irony" in client.get("/health").json()["models"]
 
@@ -37,7 +39,10 @@ def test_non_default_model_loads_on_demand(client):
 def test_targeted_sentiment_warns_outside_spanish(client):
     response = client.post(
         "/analyze",
-        json={"text": "I love it", "config": {"lang": "en", "targeted_sentiment": True}},
+        json={
+            "text": "I love it",
+            "config": {"lang": "en", "targeted_sentiment": True},
+        },
     )
 
     assert response.status_code == 200
@@ -49,4 +54,6 @@ def test_targeted_sentiment_warns_outside_spanish(client):
 
 
 def test_openapi_declares_mit_license(client):
-    assert client.get("/openapi.json").json()["info"]["license"]["name"] == "MIT License"
+    assert (
+        client.get("/openapi.json").json()["info"]["license"]["name"] == "MIT License"
+    )

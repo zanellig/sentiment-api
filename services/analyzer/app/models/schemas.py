@@ -1,41 +1,33 @@
 from enum import Enum
 from pydantic import BaseModel, Field
 
+
 class ConfigInput(BaseModel):
     """Configuration for text analysis options."""
 
     lang: str = Field(
         default="es",
         description="Language code for analysis (e.g., 'es' for Spanish, 'en' for English)",
-        examples=["es", "en"]
+        examples=["es", "en"],
     )
     sentiment: bool = Field(
         default=False,
-        description="Enable sentiment analysis (positive, negative, neutral)"
+        description="Enable sentiment analysis (positive, negative, neutral)",
     )
     emotion: bool = Field(
         default=False,
-        description="Enable emotion detection (joy, sadness, anger, fear, etc.)"
+        description="Enable emotion detection (joy, sadness, anger, fear, etc.)",
     )
-    hate_speech: bool = Field(
-        default=False,
-        description="Enable hate speech detection"
-    )
-    irony: bool = Field(
-        default=False,
-        description="Enable irony/sarcasm detection"
-    )
+    hate_speech: bool = Field(default=False, description="Enable hate speech detection")
+    irony: bool = Field(default=False, description="Enable irony/sarcasm detection")
     ner: bool = Field(
         default=False,
-        description="Enable Named Entity Recognition (persons, organizations, locations, etc.)"
+        description="Enable Named Entity Recognition (persons, organizations, locations, etc.)",
     )
-    pos: bool = Field(
-        default=False,
-        description="Enable Part-of-Speech tagging"
-    )
+    pos: bool = Field(default=False, description="Enable Part-of-Speech tagging")
     targeted_sentiment: bool = Field(
         default=False,
-        description="Enable targeted sentiment analysis (sentiment towards specific entities)"
+        description="Enable targeted sentiment analysis (sentiment towards specific entities)",
     )
 
     model_config = {
@@ -49,11 +41,12 @@ class ConfigInput(BaseModel):
                     "irony": False,
                     "ner": False,
                     "pos": False,
-                    "targeted_sentiment": False
+                    "targeted_sentiment": False,
                 }
             ]
         }
     }
+
 
 class TextInput(BaseModel):
     """Input schema for text analysis request."""
@@ -62,11 +55,10 @@ class TextInput(BaseModel):
         ...,
         description="The text to analyze",
         min_length=1,
-        examples=["Me encanta este producto, es increíble!"]
+        examples=["Me encanta este producto, es increíble!"],
     )
     config: ConfigInput = Field(
-        default_factory=ConfigInput,
-        description="Analysis configuration options"
+        default_factory=ConfigInput, description="Analysis configuration options"
     )
 
     model_config = {
@@ -82,23 +74,24 @@ class TextInput(BaseModel):
                         "irony": False,
                         "ner": False,
                         "pos": False,
-                        "targeted_sentiment": False
-                    }
+                        "targeted_sentiment": False,
+                    },
                 }
             ]
         }
     }
+
 
 class TokenOutput(BaseModel):
     """Output schema for token-level analysis (NER, POS)."""
 
     tokens: list[str] = Field(
         description="List of tokens/words identified in the text",
-        examples=[["Pablo", "vive", "en", "Madrid"]]
+        examples=[["Pablo", "vive", "en", "Madrid"]],
     )
     labels: list[str] = Field(
         description="Corresponding labels for each token",
-        examples=[["B-PER", "O", "O", "B-LOC"]]
+        examples=[["B-PER", "O", "O", "B-LOC"]],
     )
 
     model_config = {
@@ -106,11 +99,12 @@ class TokenOutput(BaseModel):
             "examples": [
                 {
                     "tokens": ["Pablo", "vive", "en", "Madrid"],
-                    "labels": ["B-PER", "O", "O", "B-LOC"]
+                    "labels": ["B-PER", "O", "O", "B-LOC"],
                 }
             ]
         }
     }
+
 
 class Entity(BaseModel):
     """Schema for a named entity."""
@@ -120,6 +114,7 @@ class Entity(BaseModel):
     start: int = Field(description="Start character index")
     end: int = Field(description="End character index")
 
+
 class NEROutput(TokenOutput):
     """Output schema for Named Entity Recognition (NER)."""
 
@@ -127,20 +122,10 @@ class NEROutput(TokenOutput):
         description="List of identified entities with their types and positions",
         examples=[
             [
-                {
-                    "type": "ORG",
-                    "text": "Banco Santander",
-                    "start": 15,
-                    "end": 30
-                },
-                {
-                    "type": "LOC",
-                    "text": "Río Gallegos",
-                    "start": 44,
-                    "end": 56
-                }
+                {"type": "ORG", "text": "Banco Santander", "start": 15, "end": 30},
+                {"type": "LOC", "text": "Río Gallegos", "start": 44, "end": 56},
             ]
-        ]
+        ],
     )
 
     model_config = {
@@ -150,23 +135,14 @@ class NEROutput(TokenOutput):
                     "tokens": ["Pablo", "vive", "en", "Madrid"],
                     "labels": ["B-PER", "O", "O", "B-LOC"],
                     "entities": [
-                        {
-                            "type": "PER",
-                            "text": "Pablo",
-                            "start": 0,
-                            "end": 5
-                        },
-                        {
-                            "type": "LOC",
-                            "text": "Madrid",
-                            "start": 14,
-                            "end": 20
-                        }
-                    ]
+                        {"type": "PER", "text": "Pablo", "start": 0, "end": 5},
+                        {"type": "LOC", "text": "Madrid", "start": 14, "end": 20},
+                    ],
                 }
             ]
         }
     }
+
 
 class AnalysisResponse(BaseModel):
     """Complete analysis response with all requested analyses."""
@@ -174,38 +150,37 @@ class AnalysisResponse(BaseModel):
     sentiment: dict | None = Field(
         default=None,
         description="Sentiment analysis result with scores for positive, negative, neutral",
-        examples=[{"label": "positive", "score": 0.98}]
+        examples=[{"label": "positive", "score": 0.98}],
     )
     emotion: dict | None = Field(
         default=None,
         description="Emotion detection result with emotion type and confidence",
-        examples=[{"label": "joy", "score": 0.95}]
+        examples=[{"label": "joy", "score": 0.95}],
     )
     hate_speech: dict | None = Field(
         default=None,
         description="Hate speech detection result",
-        examples=[{"label": "not_hate", "score": 0.99}]
+        examples=[{"label": "not_hate", "score": 0.99}],
     )
     irony: dict | None = Field(
         default=None,
         description="Irony detection result",
-        examples=[{"label": "not_ironic", "score": 0.87}]
+        examples=[{"label": "not_ironic", "score": 0.87}],
     )
     ner: NEROutput | None = Field(
         default=None,
-        description="Named Entity Recognition results with tokens and entity labels"
+        description="Named Entity Recognition results with tokens and entity labels",
     )
     pos: TokenOutput | None = Field(
         default=None,
-        description="Part-of-Speech tagging results with tokens and POS labels"
+        description="Part-of-Speech tagging results with tokens and POS labels",
     )
     targeted_sentiment: dict | None = Field(
         default=None,
-        description="Targeted sentiment analysis results for specific entities"
+        description="Targeted sentiment analysis results for specific entities",
     )
     warnings: list[str] = Field(
-        default_factory=list,
-        description="Any warnings or notices about the analysis"
+        default_factory=list, description="Any warnings or notices about the analysis"
     )
 
     model_config = {
@@ -219,11 +194,12 @@ class AnalysisResponse(BaseModel):
                     "ner": None,
                     "pos": None,
                     "targeted_sentiment": None,
-                    "warnings": []
+                    "warnings": [],
                 }
             ]
         }
     }
+
 
 class Device(str, Enum):
     """Enum for device types."""

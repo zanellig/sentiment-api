@@ -35,7 +35,9 @@ def stack():
     except Exception as error:
         if os.environ.get("REQUIRE_INTEGRATION"):
             raise
-        pytest.skip(f"Postgres or Redis not reachable, start deploy/compose.yaml: {error}")
+        pytest.skip(
+            f"Postgres or Redis not reachable, start deploy/compose.yaml: {error}"
+        )
 
     command.upgrade(Config(ALEMBIC_INI), "head")
     # Drop messages an interrupted run left behind; the compose Redis is test-only.

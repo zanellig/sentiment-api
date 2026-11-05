@@ -29,7 +29,9 @@ def gateway():
     except httpx.TransportError as error:
         if os.environ.get("REQUIRE_INTEGRATION"):
             raise
-        pytest.skip(f"Gateway not reachable, start deploy/compose.yaml --profile gateway: {error}")
+        pytest.skip(
+            f"Gateway not reachable, start deploy/compose.yaml --profile gateway: {error}"
+        )
     with httpx.Client(base_url=GATEWAY) as client:
         yield client
 
@@ -39,7 +41,10 @@ def test_rejects_requests_without_a_key(gateway):
 
 
 def test_rejects_an_unknown_key(gateway):
-    assert gateway.post("/jobs", json=TEXT_JOB, headers={"apikey": "guess"}).status_code == 401
+    assert (
+        gateway.post("/jobs", json=TEXT_JOB, headers={"apikey": "guess"}).status_code
+        == 401
+    )
 
 
 def test_rejects_a_key_in_the_query_string(gateway):
@@ -86,7 +91,10 @@ def test_rate_limits_each_consumer(gateway):
 
 def test_jobs_api_is_only_on_the_internal_network(gateway):
     ps = subprocess.run(
-        [*COMPOSE, "ps", "--format", "json", "jobs-api"], capture_output=True, check=True, text=True
+        [*COMPOSE, "ps", "--format", "json", "jobs-api"],
+        capture_output=True,
+        check=True,
+        text=True,
     )
     (container,) = [json.loads(line) for line in ps.stdout.splitlines()]
     assert container["State"] == "running"

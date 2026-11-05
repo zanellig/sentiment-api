@@ -24,7 +24,9 @@ class FakeSentiment:
 @pytest.fixture
 def published(monkeypatch):
     sent = []
-    monkeypatch.setattr(worker.app, "send_task", lambda name, args: sent.append((name, args)))
+    monkeypatch.setattr(
+        worker.app, "send_task", lambda name, args: sent.append((name, args))
+    )
     return sent
 
 
@@ -47,14 +49,21 @@ def test_labels_every_segment_in_one_batch(monkeypatch, published):
     assert name == "jobs_api.store_result"
     ready = AnalysisReady.model_validate(message)
     assert ready.job_id == request.job_id
-    assert [[r.label for r in s.results] for s in ready.segments] == [["POS"], ["NEG"], ["NEU"]]
+    assert [[r.label for r in s.results] for s in ready.segments] == [
+        ["POS"],
+        ["NEG"],
+        ["NEU"],
+    ]
     assert ready.warnings == ["Analysis 'emotion' is not available for 'es'; skipped"]
 
 
 def test_rejects_several_labels_for_a_single_label_analysis(monkeypatch):
     class MultiLabel:
         def predict(self, texts):
-            return [SimpleNamespace(output=["hateful"], probas={"hateful": 1.0}) for _ in texts]
+            return [
+                SimpleNamespace(output=["hateful"], probas={"hateful": 1.0})
+                for _ in texts
+            ]
 
     monkeypatch.setattr("analyzer.models.load", lambda analysis, lang: MultiLabel())
 
@@ -95,12 +104,16 @@ def countdowns(monkeypatch):
     return seen
 
 
-def test_publishes_step_failed_after_exhausting_retries(monkeypatch, published, countdowns):
+def test_publishes_step_failed_after_exhausting_retries(
+    monkeypatch, published, countdowns
+):
     model = Broken()
     monkeypatch.setattr("analyzer.models.load", lambda analysis, lang: model)
     message = request()
 
-    worker.analyze_job.apply(args=[message])  # eager: retries run inline, without the backoff
+    worker.analyze_job.apply(
+        args=[message]
+    )  # eager: retries run inline, without the backoff
 
     assert model.calls == 1 + worker.MAX_RETRIES
     assert countdowns == [2.0, 4.0, 8.0]  # BACKOFF_SECONDS, doubling

@@ -19,8 +19,12 @@ class Job(Base):
     state: Mapped[str]
     language: Mapped[str]
     error: Mapped[str | None] = mapped_column(Text)
-    analyses: Mapped[list[str]] = mapped_column(JSONB)  # the Analyses its AnalyzeRequested asks for
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    analyses: Mapped[list[str]] = mapped_column(
+        JSONB
+    )  # the Analyses its AnalyzeRequested asks for
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
     segments: Mapped[list["Segment"]] = relationship(order_by="Segment.index")
 
 
