@@ -1091,7 +1091,7 @@ wheels = [
 [[package]]
 name = "jobs-api"
 version = "0.1.0"
-source = { editable = "services/api" }
+source = { editable = "services/jobs-api" }
 dependencies = [
     { name = "alembic" },
     { name = "celery", extra = ["redis"] },
@@ -3048,7 +3048,7 @@ dev = [
 requires-dist = [
     { name = "analyzer", editable = "services/analyzer" },
     { name = "contracts", editable = "packages/contracts" },
-    { name = "jobs-api", editable = "services/api" },
+    { name = "jobs-api", editable = "services/jobs-api" },
 ]
 
 [package.metadata.requires-dev]
