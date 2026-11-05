@@ -13,6 +13,17 @@ pysentimiento service being migrated into a monorepo audio pipeline: Jobs API, T
 
 Model weights (several GB) download on first load. Run anything that loads real models on Codespaces, RunPod or the RTX 3070 machine; locally, test with fake models.
 
+## Checks in a worktree
+
+A worktree in `.worktrees/<branch>` reuses the main checkout's `.venv`; `pyproject.toml` makes pytest and BasedPyright import the worktree's own `src/` code. From the worktree root:
+
+```bash
+../../.venv/bin/basedpyright --pythonpath ../../.venv/bin/python
+../../.venv/bin/pytest
+```
+
+A branch that changes `uv.lock` needs its own environment: `uv sync` in the worktree.
+
 ## Gotchas in `services/analyzer/app/`
 
 - `create_analyzer` has no `device` parameter: it is ignored for sequence tasks and raises `TypeError` for `ner`/`pos`. Device placement belongs to the Analyzer worker (plan, phase 2).
