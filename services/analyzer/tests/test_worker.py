@@ -121,9 +121,9 @@ def test_repeated_message_gives_the_same_result(fakes, published):
     assert first == second
 
 
-def test_rejects_a_message_in_another_language(fakes):
+def test_rejects_segments_in_another_language(fakes):
     with pytest.raises(ValueError, match="analyses 'es', not 'en'"):
-        worker.analyze_job(request("en"))
+        analyze([Segment(index=0, text=TEXTS[0])], [Analysis.SENTIMENT], "en")
 
 
 def test_rejects_several_labels_for_a_single_label_analysis(monkeypatch):
@@ -135,16 +135,6 @@ def test_rejects_several_labels_for_a_single_label_analysis(monkeypatch):
 
     with pytest.raises(TypeError, match="several labels"):
         analyze([Segment(index=0, text="hola")], [Analysis.SENTIMENT], "es")
-
-
-def request(language="es"):
-    return AnalyzeRequested(
-        job_id=uuid4(),
-        tenant_id="acme",
-        language=language,
-        analyses=["sentiment"],
-        segments=[Segment(index=0, text="hola")],
-    ).model_dump(mode="json")
 
 
 class Broken:
