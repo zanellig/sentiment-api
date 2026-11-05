@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID, uuid4
 
 from sqlalchemy import ForeignKey, Text
@@ -34,4 +35,4 @@ class StepResult(Base):
 
     job_id: Mapped[UUID] = mapped_column(ForeignKey("jobs.id"), primary_key=True)
     step: Mapped[str] = mapped_column(primary_key=True)
-    payload: Mapped[dict] = mapped_column(JSONB)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB)

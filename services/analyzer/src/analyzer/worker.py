@@ -4,6 +4,7 @@ Run one deployment per language: `celery -A analyzer.worker worker -Q analyze.es
 """
 
 import os
+from typing import Any
 
 from celery import Celery
 from contracts import AnalysisReady, AnalyzeRequested
@@ -22,7 +23,7 @@ app.conf.update(
 
 
 @app.task(name="analyzer.analyze")
-def analyze_job(message: dict) -> None:
+def analyze_job(message: dict[str, Any]) -> None:
     request = AnalyzeRequested.model_validate(message)
     segments, warnings = analyze(request.segments, request.analyses, request.language)
     ready = AnalysisReady(

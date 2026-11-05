@@ -9,6 +9,7 @@ Cada servicio y paquete del monorepo es un paquete instalable con `src` layout (
 - Un submódulo se nombra por su responsabilidad y nunca repite el nombre del paquete (`jobs_api.lifecycle`, no `jobs_api.jobs`).
 - Una carpeta existe solo si contiene más de un módulo; un único módulo es un archivo (`jobs_api/http.py`, no `jobs_api/http/__init__.py`).
 - Todo paquete lleva `py.typed` (PEP 561), así quien lo importe recibe sus tipos. Por eso incluso un paquete de un solo archivo, como `contracts`, sigue siendo un paquete: un módulo suelto no puede llevar ese marcador.
+- Pyright en modo `strict` revisa el `src/` de cada paquete en CI. Una librería sin tipos (como pysentimiento) se toca en un solo lugar, detrás de un `Protocol` propio, que es también lo que implementan los fakes de los tests.
 
 ## Consequences
 
