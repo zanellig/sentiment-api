@@ -1,0 +1,32 @@
+routes:
+  - id: jobs-api
+    uris: ["/jobs", "/jobs/*"]
+    upstream:
+      type: roundrobin
+      nodes:
+        "jobs-api:8000": 1
+    plugins:
+      # Sets X-Consumer-Username over any client copy; the Jobs API trusts it alone (ADR-0020).
+      # deploy/tests checks this on every APISIX bump.
+      key-auth:
+        hide_credentials: true
+
+# One consumer per Tenant; the username is the tenant_id.
+# shortcut: static dev-only consumers, until the Jobs API creates them through the Admin API (#14).
+consumers:
+  - username: initech
+    plugins:
+      key-auth:
+        key: dev-only-initech-key
+      limit-count: &limit
+        count: 600
+        time_window: 60
+        key_type: var
+        key: consumer_name
+        rejected_code: 429
+  - username: umbrella
+    plugins:
+      key-auth:
+        key: dev-only-umbrella-key
+      limit-count: *limit
+#END
